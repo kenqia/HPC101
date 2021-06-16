@@ -1,4 +1,4 @@
-<font size=10>实验二：矩阵运算加速</font>
+<font size=10>实验二：通用矩阵乘法</font>
 
 ---
 
