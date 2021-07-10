@@ -40,14 +40,57 @@
 
 # 4 实验步骤
 
+接下来我们讨论的优化技巧全部是针对两个稠密矩阵的乘法。我们给出以下形式化定义：
+
+给定矩阵 $$A, B, C$$：
+$$
+{\displaystyle \mathbf {A} ={\begin{pmatrix}a_{11}&a_{12}&\cdots &a_{1n}\\a_{21}&a_{22}&\cdots &a_{2n}\\\vdots &\vdots &\ddots &\vdots \\a_{m1}&a_{m2}&\cdots &a_{mn}\\\end{pmatrix}},\quad \mathbf {B} ={\begin{pmatrix}b_{11}&b_{12}&\cdots &b_{1p}\\b_{21}&b_{22}&\cdots &b_{2p}\\\vdots &\vdots &\ddots &\vdots \\b_{n1}&b_{n2}&\cdots &b_{np}\\\end{pmatrix}}},\quad{\displaystyle \mathbf {C} ={\begin{pmatrix}c_{11}&c_{12}&\cdots &c_{1p}\\c_{21}&c_{22}&\cdots &c_{2p}\\\vdots &\vdots &\ddots &\vdots \\c_{m1}&c_{m2}&\cdots &c_{mp}\\\end{pmatrix}}}
+$$
+矩阵乘法 $$C = AB$$ 定义为对任意 $$c_{ij}$$ 有：
+$$
+{\displaystyle c_{ij}=a_{i1}b_{1j}+a_{i2}b_{2j}+\cdots +a_{in}b_{nj}=\sum _{k=1}^{n}a_{ik}b_{kj},}
+$$
+即：
+$$
+{\displaystyle \mathbf {C} ={\begin{pmatrix}a_{11}b_{11}+\cdots +a_{1n}b_{n1}&a_{11}b_{12}+\cdots +a_{1n}b_{n2}&\cdots &a_{11}b_{1p}+\cdots +a_{1n}b_{np}\\a_{21}b_{11}+\cdots +a_{2n}b_{n1}&a_{21}b_{12}+\cdots +a_{2n}b_{n2}&\cdots &a_{21}b_{1p}+\cdots +a_{2n}b_{np}\\\vdots &\vdots &\ddots &\vdots \\a_{m1}b_{11}+\cdots +a_{mn}b_{n1}&a_{m1}b_{12}+\cdots +a_{mn}b_{n2}&\cdots &a_{m1}b_{1p}+\cdots +a_{mn}b_{np}\\\end{pmatrix}}}
+$$
+为了简化问题，我们假设所有的矩阵都是 $$N \times N$$ 的方阵。 
+
 ## 4.1 单机优化
 
 ### 4.1.1 基准
 
+最基础的矩阵乘法自然是三层循环，即对二维矩阵 $$C$$ 的每一项通过单层循环计算其结果。
 
+```c++
+for (int x = 0; x < N; x++) {
+  for (int y = 0; y < N; y++) {
+    C[(x * N) + y] = 0
+    for (int k = 0; k < N; k++) {
+      C[(x * N) + y] += A[(x * N) + k] * B[(k * N) + y]
+    }
+  }
+}
+```
 
 ### 4.1.2 分块
 
+基准代码尽可能多的使用了行遍历，来提高内存的访问效率，但是即便如此还是又不少地方存在按列遍历的情况。我们引入分块技术来提高程序的局部性，降低 cache miss 的概率。
+$$
+A=\left(\begin{array}{ccc}
+A_{0,0} & \cdots & A_{0, K-1} \\
+\vdots & & \vdots \\
+A_{M-1,0} & \cdots & A_{M-1, K-1}
+\end{array}\right), B=\left(\begin{array}{ccc}
+B_{0,0} & \cdots & B_{0, N-1} \\
+\vdots & & \vdots \\
+B_{K-1,0} & \cdots & B_{K-1, N-1}
+\end{array}\right), \text { and } C=\left(\begin{array}{ccc}
+C_{0,0} & \cdots & C_{0, N-1} \\
+\vdots & & \vdots \\
+C_{M-1,0} & \cdots & C_{M-1, N-1}
+\end{array}\right)
+$$
 
 
 ### 4.1.3 向量化
