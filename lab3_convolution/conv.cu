@@ -91,6 +91,7 @@ int main() {
 
   Conv(a, w, b);
 
+  cudaDeviceSynchronize();
   auto end = std::chrono::high_resolution_clock::now();
 
   Check(a, w, b);
