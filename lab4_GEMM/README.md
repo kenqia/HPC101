@@ -22,19 +22,23 @@
 
 ## 3.2 并行计算
 
-### 3.2.1 指令级并行
+### 3.2.1 SIMD 子字并行
 
 
 
-### 3.2.2 线程级并行
+### 3.2.2 指令级并行
 
 
 
-### 3.2.3 进程级并行
+### 3.2.3 线程级并行
 
 
 
-## 3.3 通信开销
+### 3.2.4 进程级并行
+
+
+
+## 3.3 IO 与通信开销
 
 
 
@@ -75,7 +79,7 @@ for (int x = 0; x < N; x++) {
 
 ### 4.1.2 分块
 
-基准代码尽可能多的使用了行遍历，来提高内存的访问效率，但是即便如此还是又不少地方存在按列遍历的情况。我们引入分块技术来提高程序的局部性，降低 cache miss 的概率。
+基准代码尽可能多的使用了行遍历来提高内存的访问效率，但是即便如此，由于矩阵本身大小过大，导致部分按列访问的情况下，整体局部性还是不高。我们引入分块技术来提高程序的局部性，降低 cache miss 的概率。
 $$
 A=\left(\begin{array}{ccc}
 A_{0,0} & \cdots & A_{0, K-1} \\
@@ -85,19 +89,64 @@ A_{M-1,0} & \cdots & A_{M-1, K-1}
 B_{0,0} & \cdots & B_{0, N-1} \\
 \vdots & & \vdots \\
 B_{K-1,0} & \cdots & B_{K-1, N-1}
-\end{array}\right), \text { and } C=\left(\begin{array}{ccc}
+\end{array}\right), C=\left(\begin{array}{ccc}
 C_{0,0} & \cdots & C_{0, N-1} \\
 \vdots & & \vdots \\
 C_{M-1,0} & \cdots & C_{M-1, N-1}
 \end{array}\right)
 $$
 
+此时对于每一个 $$C$$，我们都有：
+$$
+{\displaystyle C_{ij}=\sum _{k=0}^{N-1}A_{ik}B_{kj},}
+$$
+大致代码实现如下：
+
+```c++
+for (int outerX = 0; outerX < N; outerX++) {
+  for (int outerY = 0; outerY < N; outerY++) {
+    // Clear C_ij matrix
+    for (int innerX = 0; innerX < blockSize; innerX++) {
+      for (int innerY = 0; innerY < blockSize; innerY++) {
+        // TODO: Clear C_ij matrix
+      }
+    }
+    for (int K = 0; K < N; K++) {
+      // TODO: calculate C_ij = sum(A_ik * B_kj)
+    }
+  }
+}
+```
+
+为了保证计算的正确性，你需要非常谨慎的处理循环层数、下标。
 
 ### 4.1.3 向量化
 
+对于循环的最内层，如果我们将其展开，往往会发现类似下面的模式：
 
+```c++
+c[i+0] = a[j+0] * b[someIdx0]
+c[i+1] = a[j+1] * b[someIdx1]
+c[i+2] = a[j+2] * b[someIdx2]
+c[i+3] = a[j+3] * b[someIdx3]
+...
+```
 
-### 4.1.4 循环排列
+这种规律、统一的计算非常适合使用 SIMD 指令进行计算。以计算 $$C_i = A_i * B_i$$ 为例，我们可以写出以下利用 AVX 指令的向量化代码：
+
+```c++
+__m256d a[N], b[N], c[N];
+for (int i = 0; i < N; i++)
+    c[i] = __mm256_mul_pd(a[i], b[i]);
+```
+
+这段代码能够在一条 CPU 指令内完成 4 个 double 的乘法，从而大幅提高系统的计算性能。
+
+同样，为了保证计算的正确性，你需要非常谨慎的处理循环层数、地址。
+
+由于向量化指令集在不同厂商、不同型号的 CPU 上可能都是不同的，手写向量化的成本非常的高。因此我们往往直接使用编译器的自动向量化。具体开启方法请查阅不同平台上相关编译器的编译选项。
+
+### 4.1.4 循环重排
 
 
 
@@ -127,4 +176,7 @@ $$
 2. [https://en.wikipedia.org/wiki/General_matrix_multiply](https://en.wikipedia.org/wiki/General_matrix_multiply)
 3. [https://github.com/flame/how-to-optimize-gemm/wiki](https://github.com/flame/how-to-optimize-gemm/wiki)
 4. [https://tvm.apache.org/docs/tutorials/optimize/opt_gemm.html](https://tvm.apache.org/docs/tutorials/optimize/opt_gemm.html)
+5. Huang J, van. BLISlab: A Sandbox for Optimizing GEMM. arXiv.org. Published 2016. Accessed July 10, 2021. https://arxiv.org/abs/1609.00076
+
+‌
 
