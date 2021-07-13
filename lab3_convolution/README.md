@@ -4,15 +4,22 @@
 
 # 1 实验简介
 
+卷积（[Convolution](https://en.wikipedia.org/wiki/Convolution)）是一种基本的数学运算，想必大家在微积分、概率论与数理统计等数学基础课程中都一定程度上接触过。作为一种基本的数学计算，其在图像处理、机器学习等领域都有重要应用。
 
+本次实验需要你使用 Cuda 完成一个 GPU 上的二维离散卷积。
 
 # 2 实验环境
 
+请大家在我们提供的集群上创建一个开发环境为 TensorFlow 的容器（要求最后在实验报告中展示环境基本信息），容器中含有 Nvidia GeForce RTX 2080 Ti 及 nvcc v10.1，无需自行配置。
 
+下图为某个可能的环境基本信息：
+
+![env_info](./img/env_info.png)
 
 # 3 实验基础知识介绍
 该部分简要介绍和实验相关的基础知识  
 为方便理解，不保证数学上的严谨性  
+
 ## 张量(tensor)
 > 张量概念是矢量概念的推广，矢量是一阶张量。张量是一个可用来表示在一些矢量、标量和其他张量之间的线性关系的多线性函数。  
 > 同构意义下，第零阶张量(r = 0)为标量(Scalar)，第一阶张量(r = 1)为向量 (Vector)，第二阶张量(r = 2)则为矩阵(Matrix)。  
@@ -38,7 +45,33 @@ $$\left(f*g\right)\left(n,m\right)=\Sigma_{i=-\lfloor b/2\rfloor}^{+\lfloor b/2\
 
 # 4 实验步骤
 
+## 4.1 基准
 
+最基础的 CPU 版本已在 `conv.cu` 中给出，即通过四层循环轮流计算结果矩阵中每个位置的值。
+
+```c++
+for (int i = 0; i < kSize; ++i) {
+  for (int j = 0; j < kSize; ++j) {
+    float conv = 0;
+    int x = i - kKernelSize / 2, y = j - kKernelSize / 2;
+    for (int k = 0; k < kKernelSize; ++k) {
+      for (int l = 0; l < kKernelSize; ++l) {
+        if (!(x < 0 || x >= kSize || y < 0 || y >= kSize))
+          conv += a[x * kSize + y] * w[k * kKernelSize + l];
+        y++;
+      }
+      x++;
+      y -= kKernelSize;
+    }
+    b[i * kSize + j] = conv;
+  }
+}
+```
 
 # 5 实验任务与要求
 
+利用以上技术，在基准程序的基础上实现卷积计算的 GPU 实现并优化之。
+
+**只允许修改两个计时点之间的代码及 Makefile 文件**
+
+Note: 调试时为使错误可复现，可以将代码中的 `std::default_random_engine generator(r());` 改为 `std::default_random_engine generator();`，这样每次生成的随机矩阵都会是一致的。
