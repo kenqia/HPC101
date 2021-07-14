@@ -114,11 +114,12 @@ Linux 发行版相当多，不熟悉或没使用过 Linux 的同学建议参考�
 HPL 的依赖除了一个 MPI 实现（在手册中是 OpenMPI）外，还需要一个 BLAS 实现，我们可以从 netlib 下载[其中一个实现](https://www.netlib.org/blas/#_software)，虽然没有优化过，但拿来测试已经足够了。
 
 ##### 检查 `gcc` / `gfortran` 环境
-BLAS 需要 gcc/gfortran 来编译，请务必检查自己虚拟机中编译器是否存在及其版本。
+BLAS 需要 `gcc` / `gfortran` 来编译，请务必检查自己虚拟机中编译器是否存在及其版本。
 ##### 编译 BLAS/CBLAS
 先编译 BLAS，再参考 `README` 和 `INSTALL` 修改 CBLAS 的 Makefile 并编译 （需要 BLAS 的链接文件）。
 #### 修改 HPL Makefile
 解压 HPL 压缩包后，在根目录的 `setup/` 文件夹下有 Makefile 相关文件的模板(Make.xxx，后缀代表架构)，复制到根目录并保存。  
+
 参考 `README` ，根据自己情况修改以下参数：  
 
 ```makefile
@@ -157,7 +158,7 @@ make arch=test
 ```shell
 ssh key-gen
 ```
-我们需要将自己的 ssh 公钥复制一份到另一个节点上的 `.ssh/authorized_keys` 中（可以利用 `nc` 命令来传输文件）。复制完成后，注意检查`authorized_keys`(600) 和 `.ssh/`(700) 目录的权限，否则无法顺利 `ssh`。
+我们需要将自己的 ssh 公钥复制一份到另一个节点上的 `.ssh/authorized_keys` 中（可以利用 `ssh-copy-id` 命令来拷贝公钥，也可以直接使用 `nc` 将公钥作为文件传输）。复制完成后，注意检查 `authorized_keys` (600) 和 `.ssh/` (700) 目录的权限，否则无法顺利  `ssh`。
 
 #### ssh passphrase
 如果自己的密钥有 passphrase，那么请使用 `ssh-agent` 确保能暂时不用输入 passphrase，以免之后影响 `mpirun` 正确运行。
