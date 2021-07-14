@@ -156,7 +156,7 @@ make arch=test
 如果你没有 ssh 密钥，可以在其中一个节点创建一个：  
 
 ```shell
-ssh key-gen
+ssh-keygen
 ```
 我们需要将自己的 ssh 公钥复制一份到另一个节点上的 `.ssh/authorized_keys` 中（可以利用 `ssh-copy-id` 命令来拷贝公钥，也可以直接使用 `nc` 将公钥作为文件传输）。复制完成后，注意检查 `authorized_keys` (600) 和 `.ssh/` (700) 目录的权限，否则无法顺利  `ssh`。
 
