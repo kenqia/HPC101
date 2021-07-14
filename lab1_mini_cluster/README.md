@@ -6,27 +6,27 @@
 
 本次实验要求使用四台虚拟机搭建一个简易的集群，并对该集群进行性能测试，最后提交测试结果和实验报告。
 
-集群搭建的任务包括创建虚拟机、安装Linux发行版、配置网络和ssh通信。
+集群搭建的任务包括创建虚拟机、安装 Linux 发行版、配置网络和 ssh 通信。
 
-性能测试通过使用OpenMPI将HPL测试程序分配到四个虚拟机节点上执行。因此，需要下载并编译OpenMPI、BLAS 和HPL的源代码，其中OpenMPI、BLAS是HPL的依赖项。
+性能测试通过使用 OpenMPI 将 HPL 测试程序分配到四个虚拟机节点上执行。因此，需要下载并编译 OpenMPI、BLAS 和 HPL 的源代码，其中 OpenMPI、BLAS是 HPL 的依赖项。
 
 # 2 实验环境
 - 一台计算机，操作系统任意
 - Hypervisor (本手册为 Virtual Box)
-- 虚拟机数台
+- 虚拟机 * 4
 # 3 实验基础知识介绍
 
 ## 计算机集群
 
-[计算机集群](https://en.wikipedia.org/wiki/Computer_cluster)是连接在一起、协同工作的一组计算机，集群中的每个计算机都是一个节点。在集群中，由软件将不同的计算任务（task）分配（schedule）到相应的一个或一群节点（node）上。本次实验中，需要使用OpenMPI将HPL程序作为task分配到集群中的四个节点上。
+[计算机集群](https://en.wikipedia.org/wiki/Computer_cluster)是连接在一起、协同工作的一组计算机，集群中的每个计算机都是一个节点。在集群中，由软件将不同的计算任务（task）分配（schedule）到相应的一个或一群节点（node）上。本次实验中，需要使用 OpenMPI 将 HPL 程序作为 task 分配到集群中的四个节点上。
 
 ### 虚拟机
 
 虚拟机为运行在其中的guest操作系统和应用提供了一个模拟的硬件环境，和真实的硬件保持一样的接口和表现，同时也如真实的硬件一样为其中的操作系统和程序提供保护机制、管理接口和资源限制。一个简易的非虚拟机和虚拟机结构的对比如下图（来源：Abraham Silberschatz, Peter Baer Galvin, Greg Gagn, *Operating System Concepts*, 10th edition, Chapter 18)
 
-一种常见的虚拟机机制实现方式便是通过hypervisor（又称VMM: Virtual Machnie Manager）来为guest操作系统提供模拟硬件环境，这也为在一台物理机上运行多个虚拟机提供了可能。
+一种常见的虚拟机机制实现方式便是通过 hypervisor（又称VMM: Virtual Machnie Manager）来为 guest 操作系统提供模拟硬件环境，这也为在一台物理机上运行多个虚拟机提供了可能。
 
-本手册中使用Virtural Box作为hypervisor进行示范和说明。
+本手册中使用 Virtural Box 作为 hypervisor 进行示范和说明。
 
 <img src="pics/image-20210714120624669.png" alt="image-20210714120624669" style="zoom:50%;" />
 
@@ -40,15 +40,15 @@ Linux 发行版（也被叫做 GNU/Linux 发行版），为一般用户预先集
 
 HPL是一个可以在分布式系统上运行的解稠密线性系统的软件包，同时也可以被用来做高性能计算Linpack测试（High Performance Computing Linpack Benchmark）。
 
-关于HPL的详细介绍可参考https://www.netlib.org/benchmark/hpl/ 
+关于HPL的详细介绍可参考 https://www.netlib.org/benchmark/hpl/ 
 
 > The HPL software package **requires** the availibility on your system of an implementation of the Message Passing Interface **MPI** (1.1 compliant). An implementation of **either** the Basic Linear Algebra Subprograms **BLAS or** the Vector Signal Image Processing Library **VSIPL** is also needed. Machine-specific as well as generic implementations of [MPI](https://www.netlib.org/benchmark/hpl/links.html#mpi_libs), the [BLAS](https://www.netlib.org/benchmark/hpl/links.html#blas_libs) and [VSIPL](https://www.netlib.org/benchmark/hpl/links.html#vsip_libs) are available for a large variety of systems.
 
-HPL需要系统中有MPI实现和BLAS实现，因此我们需要在安装HPL前在虚拟机中安装OpenMPI和BLAS。
+HPL 需要系统中有 MPI 实现和 BLAS 实现，因此我们需要在安装 HPL 前在虚拟机中安装 OpenMPI 和 BLAS。
 
-OpenMPI是一个开源的[Message Passing Interface](http://www.mpi-forum.org/)实现，由一些科研机构和企业一起开发和维护。MPI是一套标准化、可移植的消息传递标准，它被设计用于支持并行计算系统的架构，使得开发者能够方便地开发可移植的消息传递程序。同时，MPI编程能力在高性能计算的实践与学习中也是非常基础的技能。
+OpenMPI 是一个开源的 [Message Passing Interface](http://www.mpi-forum.org/) 实现，由一些科研机构和企业一起开发和维护。MPI 是一套标准化、可移植的消息传递标准，它被设计用于支持并行计算系统的架构，使得开发者能够方便地开发可移植的消息传递程序。同时，MPI 编程能力在高性能计算的实践与学习中也是非常基础的技能。
 
-BLAS是Basic Linear Algebra Subprograms的缩写，本手册只要求将其作为HPL的依赖项下载安装即可，无需过多了解。
+BLAS 是 Basic Linear Algebra Subprograms 的缩写，本手册只要求将其作为 HPL 的依赖项下载安装即可，无需过多了解。
 
 # 4 实验步骤
 ## 下载 Hypervisor 和 Linux 光盘映像文件
@@ -58,7 +58,7 @@ BLAS是Basic Linear Algebra Subprograms的缩写，本手册只要求将其作�
 ![Virtual Box 官网](pics/01.png)
 > 注意**不要选错宿主机平台**！
 #### Docker
-不推荐也不适合使用，请同学们不要钻牛角尖。
+由于本次实验希望大家从裸机手工完成完整的集群配置，包括网络和系统软件环境等，因此本次实验不推荐大家使用 Docker，如果学有余力可以尝试使用 Docker 复现本次实验，作为加分项（虚拟机为必做）。
 ### Linux 光盘映像文件
 本手册所使用的范例发行版是 Debian 10，同学可根据自己的喜好和经验挑选适合的发行版。
 Debian 下载点（如果网速问题可访问国内镜像）：
@@ -87,8 +87,9 @@ Linux 发行版相当多，不熟悉或没使用过 Linux 的同学建议参考�
 ![Step2-1](pics/05.jpg)
 选取刚下载的映像文件。  
 ![Step2-2](pics/06.jpg)
-网络对虚拟机来说十分复杂，如果你不熟悉相关的名词，在一台虚拟机的情况下，直接默认的 NAT 即可，但因为手册需要节点间彼此互连，
-因此使用 NAT Network，这样同时也可访问互联网。  
+
+网络对虚拟机来说十分复杂，如果你不熟悉相关的名词，在一台虚拟机的情况下，直接默认的 NAT 即可。选择 NAT 的另一个好处是，因为手册需要节点间彼此互连，因此使用 NAT Network 的同时，所有节点也可访问互联网。  
+
 不需要互联网或者使用有线网的同学也可以考虑使用 Bridged 或 Internal Network，具体请参考手册上的说明：[Virtual Networking](https://www.virtualbox.org/manual/ch06.html)。
 
 > 小贴士
@@ -108,12 +109,12 @@ Linux 发行版相当多，不熟悉或没使用过 Linux 的同学建议参考�
 #### 修改 `PATH` 和 `LD_LIBRARY_PATH`
 请将找到 OpenMPI 二进制文件的目录加入 `PATH` 环境变量，OpenMPI 库的目录加入 `LD_LIBRARY_PATH` 环境变量。 
 ### 下载并安装 HPL
-下载点：https://netlib.org/benchmark/hpl/software.html
+下载地址：https://netlib.org/benchmark/hpl/software.html
 #### BLAS
 HPL 的依赖除了一个 MPI 实现（在手册中是 OpenMPI）外，还需要一个 BLAS 实现，我们可以从 netlib 下载[其中一个实现](https://www.netlib.org/blas/#_software)，
 虽然没有优化过，但拿来测试已经足够了。
 
-##### 检查 `gcc` /`gfortran` 环境
+##### 检查 `gcc` / `gfortran` 环境
 BLAS 需要 gcc/gfortran 来编译，请务必检查自己虚拟机中编译器是否存在及其版本。
 ##### 编译 BLAS/CBLAS
 先编译 BLAS，再参考 `README` 和 `INSTALL` 修改 CBLAS 的 Makefile 并编译 （需要 BLAS 的链接文件）。
@@ -181,11 +182,13 @@ OpenMPI 需要测试程序为节点所共有或在节点上有相同路径，因
 mpirun --hostfile myhostfile uptime
 ```
 就能看到每个节点上线了多久。  
-HPL：
+
+运行 HPL：
 
 ```
 mpirun --hostfile myhostfile ./xhpl
 ```
 # 5 实验任务与要求
-1. 搭建四个节点的虚拟机并记录过程
+1. 搭建四个节点的虚拟机并记录过程，要求提供必要的截图或配置文件
 2. 使用 OpenMPI 和 HPL 测试集群表现并记录结果
+
