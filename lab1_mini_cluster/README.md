@@ -28,7 +28,7 @@
 
 本手册中使用 Virtural Box 作为 hypervisor 进行示范和说明。
 
-<img src="pics/image-20210714120624669.png" alt="image-20210714120624669" style="zoom:50%;" />
+<img src="pics/image-20210714120624669.png" alt="image-20210714120624669" style="zoom: 25%;" />
 
 ### Linux发行版
 
@@ -65,7 +65,7 @@ Debian 下载点（如果网速问题可访问国内镜像）：
 
 - [Official Mirror](https://cdimage.debian.org/debian-cd/current-live/amd64/iso-hybrid/)
 - [Tuna Mirror](https://mirrors.tuna.tsinghua.edu.cn/debian-cd/current-live/amd64/iso-hybrid/)
-![Debian 下载](pics/02.png)
+<img src="pics/02.png" alt="Debian 下载" style="zoom:50%;" />
 > 花花绿绿的映像，该怎么选择好呢？图中带有 mate 字眼的映像代表附有 mate 桌面，为了最精简安装，本手册采 standard 版本（不含桌面）。
 #### 不推荐使用的光盘映像
 ##### 从互联网下载 (关键字：Install via Internet / netinstall)
@@ -78,15 +78,15 @@ Linux 发行版相当多，不熟悉或没使用过 Linux 的同学建议参考�
 ### 创建虚拟机
 准备好 Hypervisor 跟 光盘映像后，就可以着手安装一个虚拟机了，请参考 Virtual Box 手册和相关教程。  
 #### 选择发行版、内存、磁盘空间
-![Step1-1](pics/03.jpg)
-![Step1-2](pics/04.jpg)
+<img src="pics/03.jpg" alt="Step1-1" style="zoom:50%;" />
+<img src="pics/04.jpg" alt="Step1-2" style="zoom:50%;" />
 
 选择自己要安装的发行版（如果没有直接选 Linux 即可），内存和磁盘空间根据实际情况分配。  
 
 #### 插入发行版映像文件和配置网络
-![Step2-1](pics/05.jpg)
+<img src="pics/05.jpg" alt="Step2-1" style="zoom:50%;" />
 选取刚下载的映像文件。  
-![Step2-2](pics/06.jpg)
+<img src="pics/06.jpg" alt="Step2-2" style="zoom:50%;" />
 
 网络对虚拟机来说十分复杂，如果你不熟悉相关的名词，在一台虚拟机的情况下，直接默认的 NAT 即可。选择 NAT 的另一个好处是，因为手册需要节点间彼此互连，因此使用 NAT Network 的同时，所有节点也可访问互联网。  
 
