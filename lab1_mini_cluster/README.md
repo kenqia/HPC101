@@ -4,11 +4,51 @@
 
 # 1 实验简介
 
+本次实验要求使用四台虚拟机搭建一个简易的集群，并对该集群进行性能测试，最后提交测试结果和实验报告。
+
+集群搭建的任务包括创建虚拟机、安装Linux发行版、配置网络和ssh通信。
+
+性能测试通过使用OpenMPI将HPL测试程序分配到四个虚拟机节点上执行。因此，需要下载并编译OpenMPI、BLAS 和HPL的源代码，其中OpenMPI、BLAS是HPL的依赖项。
+
 # 2 实验环境
 - 一台计算机，操作系统任意
 - Hypervisor (本手册为 Virtual Box)
 - 虚拟机数台
 # 3 实验基础知识介绍
+
+## 计算机集群
+
+[计算机集群](https://en.wikipedia.org/wiki/Computer_cluster)是连接在一起、协同工作的一组计算机，集群中的每个计算机都是一个节点。在集群中，由软件将不同的计算任务（task）分配（schedule）到相应的一个或一群节点（node）上。本次实验中，需要使用OpenMPI将HPL程序作为task分配到集群中的四个节点上。
+
+### 虚拟机
+
+虚拟机为运行在其中的guest操作系统和应用提供了一个模拟的硬件环境，和真实的硬件保持一样的接口和表现，同时也如真实的硬件一样为其中的操作系统和程序提供保护机制、管理接口和资源限制。一个简易的非虚拟机和虚拟机结构的对比如下图（来源：Abraham Silberschatz, Peter Baer Galvin, Greg Gagn, *Operating System Concepts*, 10th edition, Chapter 18)
+
+一种常见的虚拟机机制实现方式便是通过hypervisor（又称VMM: Virtual Machnie Manager）来为guest操作系统提供模拟硬件环境，这也为在一台物理机上运行多个虚拟机提供了可能。
+
+本手册中使用Virtural Box作为hypervisor进行示范和说明。
+
+<img src="pics/image-20210714120624669.png" alt="image-20210714120624669" style="zoom:50%;" />
+
+### Linux发行版
+
+Linux 发行版（也被叫做 GNU/Linux 发行版），为一般用户预先集成好的 Linux 操作系统及各种应用 软件。一般用户不需要重新编译，在直接安装之后，只需要小幅度更改设置就可以使用，通常以软件包管理系统来进行应用软件的管理。Linux 发行版通常包含了包括桌面环境、办公包、媒体播放器、数据库等应用软件。这些操作系统通常由 Linux 内核、以及来自 GNU 计划的大量的函数库，和基于 X Window 的图形界面。现在有超过 300 个 Linux发行版。大部分都正处于活跃的开发中，不断地改进。由于大多数软件包是自由软件和开源软件，所以 Linux 发行版的形式多种多样——从功能齐全的桌面系统以及服务器系统到小型系统 (例如一些嵌入式设备)。除了一些定制软件 (如安装和配置工具)，发行版通常只是将特定的应用软件安装在一堆函数库和内核上，以满足特定用户的需求。 
+
+这些发行版可以分为商业发行版，比如 Ubuntu（Canonical 公司）、Fedora（Red Hat）、openSUSE （Novell）和 Mandriva Linux；和社区发行版，它们由自由软件社区提供支持，如 Debian 和 Gentoo；也有发行版既不是商业发行版也不是社区发行版，如 Slackware。
+
+## HPL
+
+HPL是一个可以在分布式系统上运行的解稠密线性系统的软件包，同时也可以被用来做高性能计算Linpack测试（High Performance Computing Linpack Benchmark）。
+
+关于HPL的详细介绍可参考https://www.netlib.org/benchmark/hpl/ 
+
+> The HPL software package **requires** the availibility on your system of an implementation of the Message Passing Interface **MPI** (1.1 compliant). An implementation of **either** the Basic Linear Algebra Subprograms **BLAS or** the Vector Signal Image Processing Library **VSIPL** is also needed. Machine-specific as well as generic implementations of [MPI](https://www.netlib.org/benchmark/hpl/links.html#mpi_libs), the [BLAS](https://www.netlib.org/benchmark/hpl/links.html#blas_libs) and [VSIPL](https://www.netlib.org/benchmark/hpl/links.html#vsip_libs) are available for a large variety of systems.
+
+HPL需要系统中有MPI实现和BLAS实现，因此我们需要在安装HPL前在虚拟机中安装OpenMPI和BLAS。
+
+OpenMPI是一个开源的[Message Passing Interface](http://www.mpi-forum.org/)实现，由一些科研机构和企业一起开发和维护。MPI是一套标准化、可移植的消息传递标准，它被设计用于支持并行计算系统的架构，使得开发者能够方便地开发可移植的消息传递程序。同时，MPI编程能力在高性能计算的实践与学习中也是非常基础的技能。
+
+BLAS是Basic Linear Algebra Subprograms的缩写，本手册只要求将其作为HPL的依赖项下载安装即可，无需过多了解。
 
 # 4 实验步骤
 ## 下载 Hypervisor 和 Linux 光盘映像文件
@@ -50,6 +90,7 @@ Linux 发行版相当多，不熟悉或没使用过 Linux 的同学建议参考�
 网络对虚拟机来说十分复杂，如果你不熟悉相关的名词，在一台虚拟机的情况下，直接默认的 NAT 即可，但因为手册需要节点间彼此互连，
 因此使用 NAT Network，这样同时也可访问互联网。  
 不需要互联网或者使用有线网的同学也可以考虑使用 Bridged 或 Internal Network，具体请参考手册上的说明：[Virtual Networking](https://www.virtualbox.org/manual/ch06.html)。
+
 > 小贴士
 > - 如果你的虚拟机无法连上网，可能是宿主机的问题，请**排查宿主机的网络状况**。
 > - 由于学校的网络情况，在学校中使用虚拟机的同学还是**以 NAT Network 为主**较方便。
