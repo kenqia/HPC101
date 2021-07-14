@@ -111,8 +111,7 @@ Linux 发行版相当多，不熟悉或没使用过 Linux 的同学建议参考�
 ### 下载并安装 HPL
 下载地址：https://netlib.org/benchmark/hpl/software.html
 #### BLAS
-HPL 的依赖除了一个 MPI 实现（在手册中是 OpenMPI）外，还需要一个 BLAS 实现，我们可以从 netlib 下载[其中一个实现](https://www.netlib.org/blas/#_software)，
-虽然没有优化过，但拿来测试已经足够了。
+HPL 的依赖除了一个 MPI 实现（在手册中是 OpenMPI）外，还需要一个 BLAS 实现，我们可以从 netlib 下载[其中一个实现](https://www.netlib.org/blas/#_software)，虽然没有优化过，但拿来测试已经足够了。
 
 ##### 检查 `gcc` / `gfortran` 环境
 BLAS 需要 gcc/gfortran 来编译，请务必检查自己虚拟机中编译器是否存在及其版本。
@@ -158,8 +157,7 @@ make arch=test
 ```shell
 ssh key-gen
 ```
-我们需要将自己的 ssh 公钥复制一份到另一个节点上的 `.ssh/authorized_keys` 中（可以利用 `nc` 命令来传输文件）。复制完成后，注意检查
-`authorized_keys`(600) 和 `.ssh/`(700) 目录的权限，否则无法顺利 `ssh`。
+我们需要将自己的 ssh 公钥复制一份到另一个节点上的 `.ssh/authorized_keys` 中（可以利用 `nc` 命令来传输文件）。复制完成后，注意检查`authorized_keys`(600) 和 `.ssh/`(700) 目录的权限，否则无法顺利 `ssh`。
 
 #### ssh passphrase
 如果自己的密钥有 passphrase，那么请使用 `ssh-agent` 确保能暂时不用输入 passphrase，以免之后影响 `mpirun` 正确运行。
@@ -171,8 +169,7 @@ ssh key-gen
 localhost slots=1
 10.0.2.5  slots=1
 ```
-其中 slots 代表的意思是一个节点的 CPU 有多少核，由于我们创建虚拟机时仅分配一个核，因此这里的 slots 上限为 1 ，同学根据自己虚拟机的
-情况，修改 slots 的值。
+其中 slots 代表的意思是一个节点的 CPU 有多少核，由于我们创建虚拟机时仅分配一个核，因此这里的 slots 上限为 1 ，同学根据自己虚拟机的情况，修改 slots 的值。
 
 #### 测试程序与 HPL
 OpenMPI 需要测试程序为节点所共有或在节点上有相同路径，因为我们的第二个节点是克隆出来的，因此两个节点上的命令和 HPL 程序都会是相同路径，
