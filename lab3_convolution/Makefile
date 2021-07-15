@@ -2,7 +2,7 @@ TARGET = conv
 SOURCE = conv.cu
 
 NVCC = nvcc
-NVCCFLAGS += -O3 -Xcompiler -fopenmp
+NVCCFLAGS += -O3 -Xcompiler -fopenmp -lcuda
 
 $(TARGET):$(SOURCE)
 	$(NVCC) $(SOURCE) -o $(TARGET) $(NVCCFLAGS)
