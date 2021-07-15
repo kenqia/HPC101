@@ -13,7 +13,7 @@ void Generate(float *const a, float *const w)
   std::random_device r;
   std::default_random_engine generator(r());
   // std::default_random_engine generator;
-  std::uniform_real_distribution<float> distribution(-10, 10);
+  std::uniform_real_distribution<float> distribution(-100, 100);
   //std::uniform_int_distribution<int> distribution(0, 2);
   for (int i = 0; i < kSize * kSize; ++i)
     a[i] = distribution(generator);
@@ -102,16 +102,23 @@ __global__ void conv_cuda_kernel(float *a, float *w, float *b, size_t anchor)
 {
   // int row = (int)blockIdx.x + ((int)threadIdx.x - anchor);
   // int col = (int)blockIdx.y + ((int)threadIdx.y - anchor);
+  __shared__ float tmp;
+  tmp = 0;
+  __syncthreads();
   size_t col = (blockIdx.x + threadIdx.x) - anchor;
   size_t row = (blockIdx.y + threadIdx.y) - anchor;
+  size_t b_pos = blockIdx.x + blockIdx.y * gridDim.x;
   // if(row>=0&&row<blockDim.x&&col>=0&&col<blockDim.y)
   if (row < gridDim.y && col < gridDim.x)
   {
     size_t a_pos = row * gridDim.x + col;
     size_t w_pos = threadIdx.x + threadIdx.y * blockDim.x;
-    size_t b_pos = blockIdx.x + blockIdx.y * gridDim.x;
-    atomicAdd(b + b_pos, a[a_pos] * w[w_pos]);
+    // atomicAdd(b + b_pos, a[a_pos] * w[w_pos]);
+    // tmp += a[a_pos] * w[w_pos];
+    atomicAdd(&tmp, a[a_pos] * w[w_pos]);
   }
+  __syncthreads();
+  b[b_pos] = tmp;
 }
 // naive and shit
 // only for testing correctness and precision
@@ -123,15 +130,14 @@ void conv_cuda(const float *const a, const float *const w, float *const b)
   cudaMalloc(&w_kernel, kKernelSize * kKernelSize * sizeof(float));
   cudaMemcpy(w_kernel, w, kKernelSize * kKernelSize * sizeof(float), cudaMemcpyHostToDevice);
   cudaMalloc(&b_kernel, kSize * kSize * sizeof(float));
-  cudaMemset(b_kernel, 0, kSize * kSize * sizeof(float));
   dim3 grid(kSize, kSize);
   dim3 block(kKernelSize, kKernelSize);
   conv_cuda_kernel<<<grid, block>>>(a_kernel, w_kernel, b_kernel, kKernelSize / 2);
   cudaDeviceSynchronize();
   cudaMemcpy(b, b_kernel, kSize * kSize * sizeof(float), cudaMemcpyDeviceToHost);
-  cudaFree(a_kernel);
-  cudaFree(w_kernel);
-  cudaFree(b_kernel);
+  cudaFreeAsync(a_kernel, 0);
+  cudaFreeAsync(w_kernel, 0);
+  cudaFreeAsync(b_kernel, 0);
 }
 
 int main()
