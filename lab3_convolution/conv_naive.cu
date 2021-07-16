@@ -5,20 +5,27 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-const int kSize = 2000;
-const int kKernelSize = 13; // odd
+const int kSize = 10000;
+const int kKernelSize = 13;  // odd
 
-void Generate(float *const a, float *const w)
-{
-  std::random_device r;
-  std::default_random_engine generator(r());
-  // std::default_random_engine generator;
-  std::uniform_real_distribution<float> distribution(-100, 100);
-  //std::uniform_int_distribution<int> distribution(0, 2);
-  for (int i = 0; i < kSize * kSize; ++i)
-    a[i] = distribution(generator);
-  for (int i = 0; i < kKernelSize * kKernelSize; ++i)
-    w[i] = distribution(generator);
+#define InitRandom()                         \
+  std::random_device r;                      \
+  std::default_random_engine generator(r()); \
+  std::uniform_real_distribution<float> distribution(-1e3, 1e3);
+
+void Generate(float *const a, float *const w) {
+#pragma omp parallel for
+  for (int i = 0; i < kSize; ++i) {
+    InitRandom();
+    const int j_upperbound = (i + 1) * kSize;
+    for (int j = i * kSize; j < j_upperbound; ++j)
+      a[j] = distribution(generator);
+  }
+  {
+    InitRandom();
+    for (int i = 0; i < kKernelSize * kKernelSize; ++i)
+      w[i] = distribution(generator);
+  }
 }
 
 void Conv(const float *const a, const float *const w, float *const b)
@@ -50,7 +57,7 @@ void Check(const float *const a, const float *const w, float *const b)
 {
   auto b_std = new float[kSize * kSize];
   Conv(a, w, b_std);
-  for (int i = 0; i < kSize; ++i)
+  for (int i = 0; i < kSize * kSize; ++i)
   {
     //if (b[i] != b_std[i])
     if (abs(b[i] / b_std[i] - 1) > 1e-3)
