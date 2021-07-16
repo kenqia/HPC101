@@ -1,3 +1,5 @@
+#include <cuda.h>
+
 #include <chrono>
 #include <iomanip>
 #include <iostream>
@@ -9,7 +11,7 @@ const int kKernelSize = 13;  // odd
 #define InitRandom()                         \
   std::random_device r;                      \
   std::default_random_engine generator(r()); \
-  std::uniform_real_distribution<float> distribution(-1e3, 1e3);
+  std::uniform_int_distribution<int> distribution(-5, 5);
 
 void Generate(float *const a, float *const w) {
 #pragma omp parallel for
@@ -90,6 +92,48 @@ void Output(const float *const a, const float *const w, const float *const b) {
   }
 }
 
+const int kBlockFactor = 16;
+__global__ void conv_cuda_kernel(float *a, float *w, float *b) {
+  const int i = blockIdx.x * kBlockFactor + threadIdx.x;
+  const int j = blockIdx.y * kBlockFactor + threadIdx.y;
+  if (i < kSize && j < kSize) {
+    float conv = 0;
+    int x = i - kKernelSize / 2, y = j - kKernelSize / 2;
+    for (int k = 0; k < kKernelSize; ++k) {
+      for (int l = 0; l < kKernelSize; ++l) {
+        if (!(x < 0 || x >= kSize || y < 0 || y >= kSize))
+          conv += a[x * kSize + y] * w[k * kKernelSize + l];
+        y++;
+      }
+      x++;
+      y -= kKernelSize;
+    }
+    b[i * kSize + j] = conv;
+  }
+}
+// naive and shit
+// only for testing correctness and precision
+void conv_cuda(const float *const a, const float *const w, float *const b) {
+  float *a_kernel, *w_kernel, *b_kernel;
+  cudaMalloc(&a_kernel, kSize * kSize * sizeof(float));
+  cudaMemcpy(a_kernel, a, kSize * kSize * sizeof(float),
+             cudaMemcpyHostToDevice);
+  cudaMalloc(&w_kernel, kKernelSize * kKernelSize * sizeof(float));
+  cudaMemcpy(w_kernel, w, kKernelSize * kKernelSize * sizeof(float),
+             cudaMemcpyHostToDevice);
+  cudaMalloc(&b_kernel, kSize * kSize * sizeof(float));
+  dim3 grid((kSize + kBlockFactor - 1) / kBlockFactor,
+            (kSize + kBlockFactor - 1) / kBlockFactor);
+  dim3 block(kBlockFactor, kBlockFactor);
+  conv_cuda_kernel<<<grid, block>>>(a_kernel, w_kernel, b_kernel);
+  cudaDeviceSynchronize();
+  cudaMemcpy(b, b_kernel, kSize * kSize * sizeof(float),
+             cudaMemcpyDeviceToHost);
+  cudaFree(a_kernel);
+  cudaFree(w_kernel);
+  cudaFree(b_kernel);
+}
+
 int main() {
   auto a = new float[kSize * kSize];
   auto w = new float[kKernelSize * kKernelSize];
@@ -98,7 +142,8 @@ int main() {
 
   auto start = std::chrono::high_resolution_clock::now();
 
-  Conv(a, w, b);
+  // Conv(a, w, b);
+  conv_cuda(a, w, b);
 
   cudaDeviceSynchronize();
   auto end = std::chrono::high_resolution_clock::now();
