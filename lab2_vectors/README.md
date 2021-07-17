@@ -34,7 +34,7 @@ Numpy 代码一般采用向量化（矢量化）描述，这使得代码中没�
 
 双线性插值的算法其实非常简单，概括来说就是先在 $$x$$ 轴上进行一次插值，再在 $$y$$ 轴上进行一次插值。
 
-![img](README.assets/bilinear.png)   ![img](README.assets/bilinear2.png)
+![img](README.assets/bilinear.png)
 
 首先在 *x* 方向进行线性插值，得到
 $$
@@ -45,6 +45,12 @@ $$
 {\displaystyle {\begin{aligned}f(x,y)&\approx {\frac {y_{2}-y}{y_{2}-y_{1}}}f(x,y_{1})+{\frac {y-y_{1}}{y_{2}-y_{1}}}f(x,y_{2})\\&={\frac {y_{2}-y}{y_{2}-y_{1}}}\left({\frac {x_{2}-x}{x_{2}-x_{1}}}f(Q_{11})+{\frac {x-x_{1}}{x_{2}-x_{1}}}f(Q_{21})\right)+{\frac {y-y_{1}}{y_{2}-y_{1}}}\left({\frac {x_{2}-x}{x_{2}-x_{1}}}f(Q_{12})+{\frac {x-x_{1}}{x_{2}-x_{1}}}f(Q_{22})\right)\\&={\frac {1}{(x_{2}-x_{1})(y_{2}-y_{1})}}{\big (}f(Q_{11})(x_{2}-x)(y_{2}-y)+f(Q_{21})(x-x_{1})(y_{2}-y)+f(Q_{12})(x_{2}-x)(y-y_{1})+f(Q_{22})(x-x_{1})(y-y_{1}){\big )}\\&={\frac {1}{(x_{2}-x_{1})(y_{2}-y_{1})}}{\begin{bmatrix}x_{2}-x&x-x_{1}\end{bmatrix}}{\begin{bmatrix}f(Q_{11})&f(Q_{12})\\f(Q_{21})&f(Q_{22})\end{bmatrix}}{\begin{bmatrix}y_{2}-y\\y-y_{1}\end{bmatrix}}.\end{aligned}}}
 $$
 注意此处如果先在 *y* 方向插值、再在 *x* 方向插值，其结果与按照上述顺序双线性插值的结果是一样的。
+
+另一个例子如下所示：
+
+![img](README.assets/bilinear2.png)
+
+
 
 ## 3.2 NHWC 数据格式
 
@@ -62,18 +68,49 @@ $$
 
 ```python
 def bilinear_interp(a: np.ndarray, b: np.ndarray) -> np.ndarray:
-	# a is a ND array with shape [N, H1, W1, C]
-	# b is a ND array with shape [N, H2, W2, 2]
-	# return a ND array with shape [N, H2, W2, C]
+	"""
+  - a is a ND array with shape [N, H1, W1, C]
+	- b is a ND array with shape [N, H2, W2, 2]
+	- return a ND array with shape [N, H2, W2, C]
+  """
 ```
 
 其含义是，对于 batch 内的每一张 $$H1\times W1$$ 的图 a'，在 b' 中给出新的 $$H2\times W2$$ 的图中每个像素所想要采样的 a' 图中对应点的坐标，并将采样结果返回。
 
 ## 4.2 基准代码
 
+下面给出直接使用 `for` 循环迭代计算的双线性插值版本：
 
+```python
+def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """
+    This is the baseline implementation of bilinear interpolation without vectorization.
+    - a is a ND array with shape [N, H1, W1, C], dtype = int32
+    - b is a ND array with shape [N, H2, W2, 2], dtype = float64
+    - return a ND array with shape [N, H2, W2, C], dtype = int32
+    """
+    # get axis size from ndarray shape
+    N, H1, W1, C = a.shape
+    N1, H2, W2, _ = b.shape
+    assert N == N1
+    scale_x, scale_y = H2 / H1, W2 / W1
+
+    res = np.empty((N, H2, W2, C), dtype=int32)
+    for n in range(N):
+        for i in range(H2):
+            for j in range(W2):
+                x, y = b[n, i, j]
+                x_idx, y_idx = np.floor(x), np.floor(y)
+                _x, _y = x - x_idx, y - y_idx
+                # For simplicity, we assume all x are in [0, H1 - 1), all y are in [0, W1 - 1]
+                res[n, i, j] = a[n, x_idx, y_idx] * (1 - _x) * (1 - _y) + a[n, x_idx + 1, y_idx] * _x * (1 - _y) + \
+                               a[n, x_idx, y_idx + 1] * (1 - _x) * (1 - _y) + a[n, x_idx, y_idx] * _x * _y
+    return res
+```
 
 ## 4.3 完成向量化实现
+
+
 
 
 
