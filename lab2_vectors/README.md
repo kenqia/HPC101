@@ -18,6 +18,8 @@ Numpy 代码一般采用向量化（矢量化）描述，这使得代码中没�
 
 本次实验我们将借助 NumPy 实现一个支持批量处理的向量化的双线性插值，来让大家熟悉 NumPy 的向量化编程模式。
 
+
+
 # 2 实验环境
 
 - 任何含有 Python3 和 NumPy 的环境
@@ -34,7 +36,7 @@ Numpy 代码一般采用向量化（矢量化）描述，这使得代码中没�
 
 双线性插值的算法其实非常简单，概括来说就是先在 $$x$$ 轴上进行一次插值，再在 $$y$$ 轴上进行一次插值。
 
-![img](README.assets/bilinear.png)
+<img src="README.assets/bilinear.png" alt="img" style="zoom:80%;" />
 
 首先在 *x* 方向进行线性插值，得到
 $$
@@ -46,11 +48,9 @@ $$
 $$
 注意此处如果先在 *y* 方向插值、再在 *x* 方向插值，其结果与按照上述顺序双线性插值的结果是一样的。
 
-另一个例子如下所示：
+另一个例子如下所示，我们先在 *x* 方向上计算出线性插值的值，然后再使用这两个值在 *y* 方向上再次进行插值，得到最后的结果：
 
 ![img](README.assets/bilinear2.png)
-
-
 
 ## 3.2 NHWC 数据格式
 
@@ -109,7 +109,25 @@ def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 ## 4.3 完成向量化实现
 
+在我们给出的代码的 `bilinear_interp/vectorized.py` 中，完成 `bilinear_interp_vectorized` 函数。
 
+## 4.4 检测实现正确与加速效果
+
+运行 `main.py`，查看输出，一切顺利将看到以下结果：
+
+```bash
+[PASSED] Results are identical.
+Speed Up 1.0384487014208894x
+```
+
+否则将会触发异常：
+
+```bash
+Traceback (most recent call last):
+  File "Introduction-Labs-2021/lab2_vectors/main.py", line 28, in <module>
+    raise Exception('Results are different!')
+Exception: Results are different!
+```
 
 
 
@@ -123,8 +141,6 @@ def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
       1. 思路
       2. 正确性与加速比
 
-
-
 # 参考资料
 
 - 关于双线性插值：https://en.wikipedia.org/wiki/Bilinear_interpolation
@@ -132,3 +148,4 @@ def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 - 一篇不错的入门教程：https://medium.com/better-programming/numpy-illustrated-the-visual-guide-to-numpy-3b1d4976de1d
 - 一篇稍微硬核一点的教程：https://www.labri.fr/perso/nrougier/from-python-to-numpy/
 - 更多练习：https://github.com/rougier/numpy-100
+
