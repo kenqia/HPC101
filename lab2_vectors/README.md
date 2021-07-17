@@ -77,6 +77,8 @@ def bilinear_interp(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 其含义是，对于 batch 内的每一张 $$H1\times W1$$ 的图 a'，在 b' 中给出新的 $$H2\times W2$$ 的图中每个像素所想要采样的 a' 图中对应点的坐标，并将采样结果返回。
 
+**为了简化任务，我们假定传入的采样点不会出现在 (H1 - 1, W1 - 1)，即图像的右下角。**
+
 ## 4.2 基准代码
 
 下面给出直接使用 `for` 循环迭代计算的双线性插值版本：
@@ -101,7 +103,7 @@ def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
                 x, y = b[n, i, j]
                 x_idx, y_idx = np.floor(x), np.floor(y)
                 _x, _y = x - x_idx, y - y_idx
-                # For simplicity, we assume all x are in [0, H1 - 1), all y are in [0, W1 - 1]
+                # For simplicity, we assume all x are in [0, H1 - 1), all y are in [0, W1 - 1)
                 res[n, i, j] = a[n, x_idx, y_idx] * (1 - _x) * (1 - _y) + a[n, x_idx + 1, y_idx] * _x * (1 - _y) + \
                                a[n, x_idx, y_idx + 1] * (1 - _x) * (1 - _y) + a[n, x_idx, y_idx] * _x * _y
     return res
@@ -140,6 +142,8 @@ Exception: Results are different!
    2. 简单实验报告，包含
       1. 思路
       2. 正确性与加速比
+
+
 
 # 参考资料
 
