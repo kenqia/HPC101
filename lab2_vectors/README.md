@@ -93,7 +93,6 @@ def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     N, H1, W1, C = a.shape
     N1, H2, W2, _ = b.shape
     assert N == N1
-    scale_x, scale_y = H2 / H1, W2 / W1
 
     res = np.empty((N, H2, W2, C), dtype=int32)
     for n in range(N):
