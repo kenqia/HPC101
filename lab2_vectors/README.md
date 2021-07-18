@@ -106,7 +106,7 @@ def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
                 _x, _y = x - x_idx, y - y_idx
                 # For simplicity, we assume all x are in [0, H1 - 1), all y are in [0, W1 - 1)
                 res[n, i, j] = a[n, x_idx, y_idx] * (1 - _x) * (1 - _y) + a[n, x_idx + 1, y_idx] * _x * (1 - _y) + \
-                               a[n, x_idx, y_idx + 1] * (1 - _x) * _y + a[n, x_idx, y_idx] * _x * _y
+                               a[n, x_idx, y_idx + 1] * (1 - _x) * _y + a[n, x_idx + 1, y_idx + 1] * _x * _y
     return res
 ```
 
@@ -119,8 +119,13 @@ def bilinear_interp_baseline(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 运行 `main.py`，查看输出，一切顺利将看到以下结果：
 
 ```bash
+Generating Data...
+Executing Baseline Implementation...
+Finished in 139.50709176063538s
+Executing Vectorized Implementation...
+Finished in 4.717759132385254s
 [PASSED] Results are identical.
-Speed Up 1.0384487014208894x
+Speed Up 29.570626190511327x
 ```
 
 否则将会触发异常：
@@ -131,6 +136,8 @@ Traceback (most recent call last):
     raise Exception('Results are different!')
 Exception: Results are different!
 ```
+
+其中，耗时与加速比与你的实现和设备有关（主要是实现）。请在报告中将你的运行结果贴出。
 
 
 

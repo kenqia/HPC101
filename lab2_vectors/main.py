@@ -5,7 +5,7 @@ from bilinear_interp.vectorized import bilinear_interp_vectorized
 
 from utils.timer import time_function
 
-N = 4
+N = 8
 H1 = 540
 W1 = 960
 C = 4

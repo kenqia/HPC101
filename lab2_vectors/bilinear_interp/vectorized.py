@@ -22,12 +22,8 @@ def bilinear_interp_vectorized(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     idx_N = np.arange(N).repeat(H2 * W2)
     idx_H1 = idx_C[:, :, :, 0]
     idx_W1 = idx_C[:, :, :, 1]
-    a_00 = a[idx_N, idx_H1.reshape(-1), idx_W1.reshape(-1)]
-    a_10 = a[idx_N, idx_H1.reshape(-1) + 1, idx_W1.reshape(-1)]
-    a_01 = a[idx_N, idx_H1.reshape(-1), idx_W1.reshape(-1) + 1]
-    a_11 = a[idx_N, idx_H1.reshape(-1) + 1, idx_W1.reshape(-1) + 1]
-    res = a_00.reshape(-1) * ((1 - shift_x) * (1 - shift_y)).repeat(C) + \
-          a_10.reshape(-1) * (shift_x * (1 - shift_y)).repeat(C) + \
-          a_01.reshape(-1) * ((1 - shift_x) * shift_y).repeat(C) + \
-          a_11.reshape(-1) * (shift_x * shift_y).repeat(C)
+    res = a[idx_N, idx_H1.reshape(-1), idx_W1.reshape(-1)] * ((1 - shift_x) * (1 - shift_y)).repeat(C) + \
+          a[idx_N, idx_H1.reshape(-1) + 1, idx_W1.reshape(-1)] * (shift_x * (1 - shift_y)).repeat(C) + \
+          a[idx_N, idx_H1.reshape(-1), idx_W1.reshape(-1) + 1] * ((1 - shift_x) * shift_y).repeat(C) + \
+          a[idx_N, idx_H1.reshape(-1) + 1, idx_W1.reshape(-1) + 1] * (shift_x * shift_y).repeat(C)
     return res.reshape(N, H2, W2, C).astype(int64)
