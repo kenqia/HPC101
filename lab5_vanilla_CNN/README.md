@@ -67,36 +67,92 @@ MNIST 数据集下载： http://yann.lecun.com/exdb/mnist/index.html
 见 `MNIST.ipynb` 和 `CIFAR.ipynb`
 
 ## 4.1 环境配置
-
-
+### 4.1.1 `Python` 环境配置
+建议使用`Anaconda`配置，所需的依赖已提供在`requirements.txt`中，在虚拟环境中使用`pip install -r requirements.txt`安装
+### 4.1.2 `Pytorch`环境配置
+参考[官方提供的配置方法](https://pytorch.org/get-started/locally/)
 
 ## 4.2 数据准备
 
+我们建议利用`torchvision`提供的`torchvision.datasets`方法导入数据，`torchvision.datasets`所提供的接口十分方便，之后你可以用`torch.utils.data.DataLoader`给你的模型加载数据。
 
+此外，我们也欢迎你自定义你的`Dataset`类，这样做~~或许~~会给你带来额外的分数。为此，你需要继承`torch.utils.data.Dataset`并至少需要重写其中的`__len__()`和 `__getitem__()`函数，[这里](https://pytorch.org/docs/stable/data.html)有官方对`torch.utils.data`类的介绍，它或许可以帮到你。
+
+幸运的是，本次实验需要用到的`MNIST`和`CIFAR`数据集都可用`torchvision.datasets`导入，下面对一些你可能会用到的参数简单加以说明
+
+**注意：请在清楚参数含义后调用它们**
+```Python
+# MNIST
+torchvision.datasets.MNIST(root, train=True, transform=None, target_transform=None, download=False)
+# CIFAR-10
+torchvision.datasets.CIFAR10(root, train=True, transform=None, target_transform=None, download=False)
+# CIFAR-100
+torchvision.datasets.CIFAR100(root, train=True, transform=None, target_transform=None, download=False)
+```
+一些重要的参数说明：
+ - root: 在`MNIST`中是`processed/training.pt` 和 `processed/test.pt` 的主目录，在`CIFAR`中为`cifar-10-batches-py`所在的目录
+- train: `True`代表训练集，`False`代表测试集
+- transform 和 target_transform: 分别是对图像和label的转换操作
+- download: 若为`True`则下载数据集并放到`root`所指定的目录中，否则直接尝试从`root`目录中读取
+
+你可以在[这里](https://pytorch.org/vision/0.8/datasets.html)获取更加详细的说明
 
 ## 4.3 模型编写
 
 ### 4.3.1 网络结构
+`PyTorch`提供了许多种定义模型的方式，最常用的一种是将网络结构以类保存，你应当首先继承[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module)，并实现正向传播的`forward`函数，(为什么不用定义反向传播函数呢？因为你继承的`nn.Module`就是干这个事情的)。
 
+下面为网络结构的一个sample（但显然这样的网络并不能用于本次Lab），本次实验中你需要自定义你的网络结构，以完成我们的分类任务
+```Python
+import torch.nn as nn
+import torch.nn.functional as F
 
+class Model(nn.Module):
+    def __init__(self):
+        super(Model, self).__init__() # 利用参数初始化父类
+        self.conv1 = nn.Conv2d(1, 20, 5)
+        self.conv2 = nn.Conv2d(20, 20, 5)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        return F.relu(self.conv2(x))
+```
+
+当然，你需要实例化你的模型，可以直接对模型打印以查看结构
+```Python
+model = Model()
+print(model)
+```
 
 ### 4.3.2 正向传播
-
+正向传播的过程在`forward`中定义，
 
 
 ### 4.3.3 反向传播
-
+反向传播以及更新梯度的操作已经被`PyTorch`封装在了`nn.Module`中，
 
 
 ### 4.3.4 优化器
 
 
+### 4.3.5 损失函数
 
 ## 4.4 训练过程
 
 多卡的训练需要配置 DDP。作为加分项。
 
 
+## 4.5 Tips
+- `nn.functional.ReLU` (简记为`F.ReLU`)和 `nn.ReLU`略有不同，区别在于前者作为一个函数调用，如4.3.1中所示，而后者作为一个层结构，必须添加到`nn.Module`容器中才能使用，两者实现的功能一样，在`PyTorch`中,`nn.X`都有对应的函数版本`F.X`。
+- 除了利用继承`nn.Module`来建立网络，不推荐但可以使用`nn.ModuleList`, `nn.ModuleDict`, 甚至可以用`nn.Sequential`直接定义模型，~~在你没时间做实验的时候可以采用这种方法~~
+- 你可以定义如下的`device`变量，以便你的模型在没有GPU环境下也可以测试：
+```Python
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+model = Model().to(device)
+some_data = some_data.to(device)
+```
+- 相比于原生的`PyTorch`，`PyTorch Lightning`框架对其进行了更高层次的封装，很大程度上简化了模型定义、训练以及测试的步骤，使用`PyTorch Lightning`作为本次实验的加分项，官网链接已附在参考资料中。
 
 
 # 5 实验任务与要求
