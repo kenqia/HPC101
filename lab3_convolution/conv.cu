@@ -50,7 +50,7 @@ void Check(const float *const a, const float *const w, float *const b) {
   auto b_std = new float[kSize * kSize];
   Conv(a, w, b_std);
   for (int i = 0; i < kSize * kSize; ++i) {
-    if (b[i] != b_std[i]) {
+    if (abs(b[i] / b_std[i] - 1) > 1e-3) {
       std::cout << "\x1b[31m"
                    "Wrong Answer"
                    "\x1b[0m"
