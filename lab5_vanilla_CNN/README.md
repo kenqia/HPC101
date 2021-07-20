@@ -123,22 +123,60 @@ class Model(nn.Module):
 model = Model()
 print(model)
 ```
+### 4.3.2 损失函数
+常见的损失函数都被定义在了`nn.Module`中，你可以在训练过程开始前将其实例化，并在训练时调用，例如：
+```Python
+criterion = torch.nn.CrossEntropyLoss()
+```
 
-### 4.3.2 正向传播
-正向传播的过程在`forward`中定义，
+### 4.3.3 正向传播
+正向传播是指对神经网络沿着从输入层到输出层的顺序，依次计算并存储模型的中间变量（包括输出）。
+正向传播的过程在`forward`中定义，对于模型实例，可以直接利用输入输出得到模型预测的结果。
+```Python
+y_pred = model(x)
+```
+
+### 4.3.4 反向传播
+
+反向传播（Backpropagation，BP）是“误差反向传播”的简称，是一种与最优化方法（如梯度下降法）结合使用的，用来训练人工神经网络的常见方法。该方法对网络中所有权重计算损失函数的梯度。这个梯度会反馈给最优化方法，用来更新权值以最小化损失函数。
+
+在计算过模型的loss之后，可以利用`loss.backward()`计算反向传播的梯度，梯度会被直接储存在`requires_grad=True`的节点中，不过此时节点的权重暂时不会更新，因此可以做到梯度的累加。
 
 
-### 4.3.3 反向传播
-反向传播以及更新梯度的操作已经被`PyTorch`封装在了`nn.Module`中，
 
-
-### 4.3.4 优化器
-
-
-### 4.3.5 损失函数
+### 4.3.5 优化器
+常用的优化器都被定义在了`torch.optim`中，为了使用优化器，你需要构建一个optimizer对象。这个对象能够保持当前参数状态并基于计算得到的梯度进行参数更新。你需要给它一个包含了需要优化的参数（必须都是Variable对象）的iterable。然后，你可以设置optimizer的参 数选项，比如学习率，权重衰减，例如：
+```Python
+optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.9)
+optimizer = optim.Adam([var1, var2], lr = 0.0001)
+```
+所有的optimizer都实现了step()方法，这个方法会更新所有的参数。或许你会在反向传播后用到它。
+```Python
+optimizer.step()
+```
+需要注意的是，在反向传播前，如果你不希望梯度累加，请使用
+```Python
+optimizer.zero_grad()
+```
+将梯度清零。
 
 ## 4.4 训练过程
+前文中已经定义了网络结构、损失函数、优化器，至此，一个较为完整的训练过程如下，需要注意的是，你的训练过程要不断从`DataLoader`中取出数据。
+```Python
+criterion = torch.nn.MSELoss(reduction='sum')
+optimizer = torch.optim.SGD(model.parameters(), lr=1e-8, momentum=0.9)
+for t in range(30000):
+    # Forward pass: Compute predicted y by passing x to the model
+    y_pred = model(x)
 
+    # Compute and print loss
+    loss = criterion(y_pred, y)
+
+    # Zero gradients, perform a backward pass, and update the weights.
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+```
 多卡的训练需要配置 DDP。作为加分项。
 
 
