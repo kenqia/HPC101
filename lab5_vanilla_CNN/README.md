@@ -9,9 +9,13 @@
 
 本次实验我们将完成两个简单的 CNN 网络，并在 GPU 上加速它的训练，体会基本的网络设计、训练流程。
 
+
+
 # 2 实验环境
 
-TBD
+请大家在我们提供的集群上创建一个开发环境为 PyTorch 的容器（要求最后在实验报告中展示环境基本信息）。容器中含有 Nvidia GeForce RTX 2080 Ti 及 PyTorch，无需自行配置。如果发现 PyTorch 版本过低请参照 4.1 中的环境配置方法更新 Python 与 PyTorch 版本。
+
+
 
 # 3 实验基础知识介绍
 
@@ -64,23 +68,22 @@ MNIST 数据集下载： http://yann.lecun.com/exdb/mnist/index.html
 
 
 # 4 实验步骤
-见 `MNIST.ipynb` 和 `CIFAR.ipynb`
-
 ## 4.1 环境配置
 ### 4.1.1 `Python` 环境配置
-建议使用`Anaconda`配置，所需的依赖已提供在`requirements.txt`中，在虚拟环境中使用`pip install -r requirements.txt`安装
-### 4.1.2 `Pytorch`环境配置
+建议使用 `Anaconda` 配置，所需的依赖已提供在 `requirements.txt` 中，在虚拟环境中使用 `pip install -r requirements.txt` 安装
+### 4.1.2 `Pytorch` 环境配置
 参考[官方提供的配置方法](https://pytorch.org/get-started/locally/)
 
 ## 4.2 数据准备
 
-我们建议利用`torchvision`提供的`torchvision.datasets`方法导入数据，`torchvision.datasets`所提供的接口十分方便，之后你可以用`torch.utils.data.DataLoader`给你的模型加载数据。
+我们建议利用 `torchvision` 提供的 `torchvision.datasets` 方法导入数据，`torchvision.datasets` 所提供的接口十分方便，之后你可以用 `torch.utils.data.DataLoader` 给你的模型加载数据。
 
-此外，我们也欢迎你自定义你的`Dataset`类，这样做~~或许~~会给你带来额外的分数。为此，你需要继承`torch.utils.data.Dataset`并至少需要重写其中的`__len__()`和 `__getitem__()`函数，[这里](https://pytorch.org/docs/stable/data.html)有官方对`torch.utils.data`类的介绍，它或许可以帮到你。
+此外，我们也欢迎你自定义你的 `Dataset` 类，这样做~~或许~~会给你带来额外的分数。为此，你需要继承 `torch.utils.data.Dataset` 并至少需要重写其中的 `__len__()` 和 `__getitem__()` 函数，[这里](https://pytorch.org/docs/stable/data.html)有官方对 `torch.utils.data` 类的介绍，它或许可以帮到你。
 
-幸运的是，本次实验需要用到的`MNIST`和`CIFAR`数据集都可用`torchvision.datasets`导入，下面对一些你可能会用到的参数简单加以说明
+幸运的是，本次实验需要用到的 `MNIST` 和 `CIFAR` 数据集都可用 `torchvision.datasets` 导入，下面对一些你可能会用到的参数简单加以说明
 
 **注意：请在清楚参数含义后调用它们**
+
 ```Python
 # MNIST
 torchvision.datasets.MNIST(root, train=True, transform=None, target_transform=None, download=False)
@@ -90,19 +93,19 @@ torchvision.datasets.CIFAR10(root, train=True, transform=None, target_transform=
 torchvision.datasets.CIFAR100(root, train=True, transform=None, target_transform=None, download=False)
 ```
 一些重要的参数说明：
- - root: 在`MNIST`中是`processed/training.pt` 和 `processed/test.pt` 的主目录，在`CIFAR`中为`cifar-10-batches-py`所在的目录
-- train: `True`代表训练集，`False`代表测试集
-- transform 和 target_transform: 分别是对图像和label的转换操作
-- download: 若为`True`则下载数据集并放到`root`所指定的目录中，否则直接尝试从`root`目录中读取
+ - root: 在`MNIST`中是 `processed/training.pt` 和 `processed/test.pt` 的主目录，在 `CIFAR` 中为 `cifar-10-batches-py` 所在的目录
+- train: `True` 代表训练集，`False` 代表测试集
+- transform 和 target_transform: 分别是对图像和 label 的转换操作
+- download: 若为 `True` 则下载数据集并放到 `root` 所指定的目录中，否则直接尝试从 `root` 目录中读取
 
 你可以在[这里](https://pytorch.org/vision/0.8/datasets.html)获取更加详细的说明
 
 ## 4.3 模型编写
 
 ### 4.3.1 网络结构
-`PyTorch`提供了许多种定义模型的方式，最常用的一种是将网络结构以类保存，你应当首先继承[`torch.nn.Module`](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module)，并实现正向传播的`forward`函数，(为什么不用定义反向传播函数呢？因为你继承的`nn.Module`就是干这个事情的)。
+`PyTorch` 提供了许多种定义模型的方式，最常用的一种是将网络结构以类保存，你应当首先继承 [torch.nn.Module](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module)，并实现正向传播的 `forward` 函数，(为什么不用定义反向传播函数呢？因为你继承的 `nn.Module` 就是干这个事情的)。
 
-下面为网络结构的一个sample（但显然这样的网络并不能用于本次Lab），本次实验中你需要自定义你的网络结构，以完成我们的分类任务
+下面为网络结构的一个 sample（但显然这样的网络并不能用于本次 Lab），本次实验中你需要自定义你的网络结构，以完成我们的分类任务：
 ```Python
 import torch.nn as nn
 import torch.nn.functional as F
@@ -123,7 +126,10 @@ class Model(nn.Module):
 model = Model()
 print(model)
 ```
+网络结构编写中一个很大的难点在于每一步的 tensor shape 需要匹配，请仔细检查你的代码来确保此部分的正确性。
+
 ### 4.3.2 损失函数
+
 常见的损失函数都被定义在了`torch.nn`中，你可以在训练过程开始前将其实例化，并在训练时调用，例如：
 ```Python
 criterion = torch.nn.CrossEntropyLoss()
@@ -140,28 +146,24 @@ y_pred = model(x)
 
 反向传播（Backpropagation，BP）是“误差反向传播”的简称，是一种与最优化方法（如梯度下降法）结合使用的，用来训练人工神经网络的常见方法。该方法对网络中所有权重计算损失函数的梯度。这个梯度会反馈给最优化方法，用来更新权值以最小化损失函数。
 
-在计算过模型的loss之后，可以利用`loss.backward()`计算反向传播的梯度，梯度会被直接储存在`requires_grad=True`的节点中，不过此时节点的权重暂时不会更新，因此可以做到梯度的累加。
-
-
+在计算过模型的loss之后，可以利用 `loss.backward()` 计算反向传播的梯度，梯度会被直接储存在 `requires_grad=True` 的节点中，不过此时节点的权重暂时不会更新，因此可以做到梯度的累加。
 
 ### 4.3.5 优化器
-常用的优化器都被定义在了`torch.optim`中，为了使用优化器，你需要构建一个optimizer对象。这个对象能够保持当前参数状态并基于计算得到的梯度进行参数更新。你需要给它一个包含了需要优化的参数（必须都是Variable对象）的iterable。然后，你可以设置optimizer的参 数选项，比如学习率，权重衰减，例如：
+常用的优化器都被定义在了 `torch.optim` 中，为了使用优化器，你需要构建一个 optimizer 对象。这个对象能够保持当前参数状态并基于计算得到的梯度进行参数更新。你需要给它一个包含了需要优化的参数（必须都是 Variable 对象）的iterable。然后，你可以设置optimizer的参 数选项，比如学习率，权重衰减，例如：
 ```Python
-optimizer = optim.SGD(model.parameters(), lr = 0.01, momentum=0.9)
-optimizer = optim.Adam([var1, var2], lr = 0.0001)
+optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+optimizer = optim.Adam([var1, var2], lr=0.0001)
 ```
 所有的optimizer都实现了step()方法，这个方法会更新所有的参数。或许你会在反向传播后用到它。
 ```Python
 optimizer.step()
 ```
-需要注意的是，在反向传播前，如果你不希望梯度累加，请使用
+需要注意的是，在反向传播前，如果你不希望梯度累加，请使用下面的代码将梯度清零。
 ```Python
 optimizer.zero_grad()
 ```
-将梯度清零。
-
 ## 4.4 训练过程
-前文中已经定义了网络结构、损失函数、优化器，至此，一个较为完整的训练过程如下，需要注意的是，你的训练过程要不断从`DataLoader`中取出数据。
+前文中已经定义了网络结构、损失函数、优化器，至此，一个较为完整的训练过程如下，需要注意的是，你的训练过程要不断从 `DataLoader` 中取出数据。
 ```Python
 criterion = torch.nn.MSELoss(reduction='sum')
 optimizer = torch.optim.SGD(model.parameters(), lr=1e-8, momentum=0.9)
@@ -177,20 +179,26 @@ for t in range(30000):
     loss.backward()
     optimizer.step()
 ```
-多卡的训练需要配置 DDP。作为加分项。
+多卡的训练需要配置 DDP，作为加分项。
+
+### 4.4.1 TensorBoard
+
+TensorBoard 是常用的训练过程可视化工具。请参考 [PyTorch](https://pytorch.org/tutorials/recipes/recipes/tensorboard_with_pytorch.html) 的官方教程完成配置。
 
 
 ## 4.5 Tips
-- `nn.functional.ReLU` (简记为`F.ReLU`)和 `nn.ReLU`略有不同，区别在于前者作为一个函数调用，如4.3.1中所示，而后者作为一个层结构，必须添加到`nn.Module`容器中才能使用，两者实现的功能一样，在`PyTorch`中,`nn.X`都有对应的函数版本`F.X`。
-- 除了利用继承`nn.Module`来建立网络，不推荐但可以使用`nn.ModuleList`, `nn.ModuleDict`, 甚至可以用`nn.Sequential`直接定义模型，~~在你没时间做实验的时候可以采用这种方法~~
-- 你可以定义如下的`device`变量，以便你的模型在没有GPU环境下也可以测试：
+- `nn.functional.ReLU`  （简记为 `F.ReLU` ）和 `nn.ReLU` 略有不同，区别在于前者作为一个函数调用，如 4.3.1 中所示，而后者作为一个层结构，必须添加到 `nn.Module` 容器中才能使用，两者实现的功能一样，在 `PyTorch` 中，`nn.X` 都有对应的函数版本 `F.X`。
+- 除了利用继承 `nn.Module` 来建立网络，不推荐但可以使用 `nn.ModuleList`, `nn.ModuleDict`，推荐使用`nn.Sequential`直接定义模型
+- 你可以定义如下的 `device` 变量，以便你的模型在没有 GPU 环境下也可以测试：
 ```Python
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = Model().to(device)
 some_data = some_data.to(device)
 ```
-- 相比于原生的`PyTorch`，`PyTorch Lightning`框架对其进行了更高层次的封装，很大程度上简化了模型定义、训练以及测试的步骤，使用`PyTorch Lightning`作为本次实验的加分项，官网链接已附在参考资料中。
+- 相比于原生的 `PyTorch`，`PyTorch Lightning` 框架对其进行了更高层次的封装，很大程度上简化了模型定义、训练以及测试的步骤，使用 `PyTorch Lightning` 作为本次实验的加分项，官网链接已附在参考资料中。如果你能够在 TensorBoard 中将中间层可视化，你能得到更多的加分。
+
+
 
 
 # 5 实验任务与要求
@@ -198,14 +206,37 @@ some_data = some_data.to(device)
 1. 使用 `PyTorch` 实现最基本的卷积神经网络 LeNet-5，并在 MNIST 数据集上使用 GPU 进行训练，并对测试集进行测试。
 
 2. 使用 `PyTorch` 实现更复杂的卷积神经网络，结构可以自行设计，并在CIFAR 10 数据集上使用 GPU 进行训练，并对测试集进行测试。
-3. 你需要提交：
+
+3. 回答问题：
+
+   1. 池化层有很多种，较常使用的是平均和最大，在这个数据集上使用有什么的区别，哪个效果好一些？
+
+   2. 修改网络结构以求得到更好的效果，可能的修改方向有：
+
+       a. 调整卷积窗口的大小、步长
+
+       b. 调整卷积层的数量
+
+       c. 调整全连接层的数量
+
+       d. 调整激活函数
+       
+       e. 调整输出通道的多少
+       
+       **你采用了哪些策略来改进你的网络，效果如何？**
+
+4. 你需要提交：
    1. 全部代码
    2. 实验报告，其中需要包含：
       1. 简要实验过程
       2. 贴上两个 CNN 模型训练过程的 **GPU 占用率截图**（使用 `nvidia-smi` 查看）
       3. Tensorboard **损失曲线、准确率曲线等截图**
-      4. 写明测试集上的**识别正确率**。
-4. ***不允许直接使用各种深度学习开发工具已训练好的 CNN 网络结构与参数。***
+      4. 写明测试集上的**识别正确率**
+      5. 回答 3 中的问题
+
+5. ***不允许直接使用各种深度学习开发工具已训练好的 CNN 网络结构与参数。***
+
+6. ***本次实验依然会进行查重，如果你参考了网络上的代码请在报告中列出，并体现出你的理解，否则一经查出视为抄袭***
 
 
 
