@@ -124,7 +124,7 @@ model = Model()
 print(model)
 ```
 ### 4.3.2 损失函数
-常见的损失函数都被定义在了`nn.Module`中，你可以在训练过程开始前将其实例化，并在训练时调用，例如：
+常见的损失函数都被定义在了`torch.nn`中，你可以在训练过程开始前将其实例化，并在训练时调用，例如：
 ```Python
 criterion = torch.nn.CrossEntropyLoss()
 ```
