@@ -1,4 +1,5 @@
-#include <chrono>
+#include <cuda.h>
+
 #include <iomanip>
 #include <iostream>
 #include <random>
@@ -96,17 +97,26 @@ int main() {
   auto b = new float[kSize * kSize];
   Generate(a, w);
 
-  auto start = std::chrono::high_resolution_clock::now();
+  cudaEvent_t start_e, stop_e;
+  cudaEventCreate(&start_e);
+  cudaEventCreate(&stop_e);
+
+  cudaEventRecord(start_e);
 
   Conv(a, w, b);
 
   cudaDeviceSynchronize();
-  auto end = std::chrono::high_resolution_clock::now();
+
+  cudaEventRecord(stop_e);
+  cudaEventSynchronize(stop_e);
 
   Check(a, w, b);
-  std::chrono::nanoseconds diff =
-      std::chrono::duration_cast<decltype(diff)>(end - start);
-  std::cout << diff.count() << " nanoseconds" << std::endl;
+
+  float milliseconds = 0;
+  cudaEventElapsedTime(&milliseconds, start_e, stop_e);
+  std::cout << milliseconds << " milliseconds" << std::endl;
+  cudaEventDestroy(start_e);
+  cudaEventDestroy(stop_e);
 
   // Output(a, w, b);
 

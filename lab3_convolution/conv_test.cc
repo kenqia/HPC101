@@ -1,6 +1,5 @@
 #include <cuda.h>
 
-#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <random>
@@ -11,7 +10,7 @@ const int kKernelSize = 13;  // odd
 #define InitRandom()                         \
   std::random_device r;                      \
   std::default_random_engine generator(r()); \
-  std::uniform_int_distribution<int> distribution(-5, 5);
+  std::uniform_real_distribution<float> distribution(0, 1e3);
 
 void Generate(float *const a, float *const w) {
 #pragma omp parallel for
@@ -52,7 +51,7 @@ void Check(const float *const a, const float *const w, float *const b) {
   auto b_std = new float[kSize * kSize];
   Conv(a, w, b_std);
   for (int i = 0; i < kSize * kSize; ++i) {
-    if (b[i] != b_std[i]) {
+    if (abs(b[i] / b_std[i] - 1) > 1e-3 || isnanf(b[i]) || isinff(b[i])) {
       std::cout << "\x1b[31m"
                    "Wrong Answer"
                    "\x1b[0m"
@@ -126,7 +125,6 @@ void conv_cuda(const float *const a, const float *const w, float *const b) {
             (kSize + kBlockFactor - 1) / kBlockFactor);
   dim3 block(kBlockFactor, kBlockFactor);
   conv_cuda_kernel<<<grid, block>>>(a_kernel, w_kernel, b_kernel);
-  cudaDeviceSynchronize();
   cudaMemcpy(b, b_kernel, kSize * kSize * sizeof(float),
              cudaMemcpyDeviceToHost);
   cudaFree(a_kernel);
@@ -140,18 +138,27 @@ int main() {
   auto b = new float[kSize * kSize];
   Generate(a, w);
 
-  auto start = std::chrono::high_resolution_clock::now();
+  cudaEvent_t start_e, stop_e;
+  cudaEventCreate(&start_e);
+  cudaEventCreate(&stop_e);
+
+  cudaEventRecord(start_e);
 
   // Conv(a, w, b);
   conv_cuda(a, w, b);
 
   cudaDeviceSynchronize();
-  auto end = std::chrono::high_resolution_clock::now();
+
+  cudaEventRecord(stop_e);
+  cudaEventSynchronize(stop_e);
 
   Check(a, w, b);
-  std::chrono::nanoseconds diff =
-      std::chrono::duration_cast<decltype(diff)>(end - start);
-  std::cout << diff.count() << " nanoseconds" << std::endl;
+
+  float milliseconds = 0;
+  cudaEventElapsedTime(&milliseconds, start_e, stop_e);
+  std::cout << milliseconds << " milliseconds" << std::endl;
+  cudaEventDestroy(start_e);
+  cudaEventDestroy(stop_e);
 
   // Output(a, w, b);
 
