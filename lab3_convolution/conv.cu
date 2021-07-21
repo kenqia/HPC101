@@ -9,7 +9,7 @@ const int kKernelSize = 13;  // odd
 #define InitRandom()                         \
   std::random_device r;                      \
   std::default_random_engine generator(r()); \
-  std::uniform_real_distribution<float> distribution(-1e3, 1e3);
+  std::uniform_real_distribution<float> distribution(0, 1e3);
 
 void Generate(float *const a, float *const w) {
 #pragma omp parallel for
@@ -50,7 +50,7 @@ void Check(const float *const a, const float *const w, float *const b) {
   auto b_std = new float[kSize * kSize];
   Conv(a, w, b_std);
   for (int i = 0; i < kSize * kSize; ++i) {
-    if (abs(b[i] / b_std[i] - 1) > 1e-3) {
+    if (abs(b[i] / b_std[i] - 1) > 1e-3 || isnanf(b[i]) || isinff(b[i])) {
       std::cout << "\x1b[31m"
                    "Wrong Answer"
                    "\x1b[0m"
