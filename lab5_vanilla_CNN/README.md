@@ -70,9 +70,9 @@ MNIST 数据集下载： http://yann.lecun.com/exdb/mnist/index.html
 # 4 实验步骤
 ## 4.1 环境配置
 ### 4.1.1 `Python` 环境配置
-建议使用 `Anaconda` 配置，所需的依赖已提供在 `requirements.txt` 中，在虚拟环境中使用 `pip install -r requirements.txt` 安装
+建议使用 `Anaconda` 配置。
 ### 4.1.2 `Pytorch` 环境配置
-参考[官方提供的配置方法](https://pytorch.org/get-started/locally/)
+参考[官方提供的配置方法](https://pytorch.org/get-started/locally/)。
 
 ## 4.2 数据准备
 
