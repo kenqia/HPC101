@@ -78,7 +78,7 @@ MNIST 数据集下载： http://yann.lecun.com/exdb/mnist/index.html
 
 我们建议利用 `torchvision` 提供的 `torchvision.datasets` 方法导入数据，`torchvision.datasets` 所提供的接口十分方便，之后你可以用 `torch.utils.data.DataLoader` 给你的模型加载数据。
 
-此外，我们也欢迎你自定义你的 `Dataset` 类，这样做~~或许~~会给你带来额外的分数。为此，你需要继承 `torch.utils.data.Dataset` 并至少需要重写其中的 `__len__()` 和 `__getitem__()` 函数，[这里](https://pytorch.org/docs/stable/data.html)有官方对 `torch.utils.data` 类的介绍，它或许可以帮到你。
+此外，我们也欢迎你自定义你的 `Dataset` 类，这样做会给你带来额外的分数。为此，你需要继承 `torch.utils.data.Dataset` 并至少需要重写其中的 `__len__()` 和 `__getitem__()` 函数，[这里](https://pytorch.org/docs/stable/data.html)有官方对 `torch.utils.data` 类的介绍，它或许可以帮到你。
 
 幸运的是，本次实验需要用到的 `MNIST` 和 `CIFAR` 数据集都可用 `torchvision.datasets` 导入，下面对一些你可能会用到的参数简单加以说明
 
