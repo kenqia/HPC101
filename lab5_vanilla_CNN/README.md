@@ -179,7 +179,7 @@ for t in range(30000):
     loss.backward()
     optimizer.step()
 ```
-多卡的训练需要配置 DDP，作为加分项。
+多卡的训练需要配置 [DDP](https://pytorch.org/docs/stable/notes/ddp.html)，作为加分项。
 
 ### 4.4.1 TensorBoard
 
