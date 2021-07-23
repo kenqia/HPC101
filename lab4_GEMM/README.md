@@ -222,7 +222,7 @@ $$
 
 我们将提供一份代码包，包含正确性检验以及性能计算，形式如下。
 
-### `zju_hpc_hw.h`
+### `hw.h`
 
 ```c++
 // mat_A, mat_B and result point to memory at least 10001*10001*4B 
@@ -231,10 +231,10 @@ void input(int* mat_A, int* mat_B);
 void output(int* result, int n);
 ```
 
-### `baseline.cpp`
+### `hw_baseline.cpp`
 
 ```c++
-#include "zju_hpc_hw.h"
+#include "hw.h"
 
 int matA[10001*10001];
 int matB[10001*10001];
@@ -246,6 +246,8 @@ int main() {
   output(matA, n);
 }
 ```
+
+你可以使用 `make` 构建二进制，并使用 `make run` 运行你的二进制程序。
 
 ## 5.4 评测方式
 
