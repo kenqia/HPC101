@@ -1,6 +1,8 @@
 site_name: HPC101-Labs-2023
 theme:
   name: material
+  logo: assets/zjusct.png
+  favicon: assets/zjusct.png
 nav:
   - Lab1-简单集群搭建: Lab1-MiniCluster/index.md
 #  - Lab2-向量化计算: Lab2-Vectors/index.md
