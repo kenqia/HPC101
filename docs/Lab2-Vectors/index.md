@@ -160,7 +160,7 @@ Exception: Results are different!
 
 ## 5 实验初始代码
 
-详见 [starter_code](https://github.com/ZJUSCT/HPC101-Labs-2022/blob/main/docs/Lab2-Vectors/starter_code)
+详见 [starter_code](https://git.zju.edu.cn/zjusct/summer-course-2023/HPC101-Labs-2023/-/tree/main/docs/Lab2-Vectors/starter_code)
 
 ## 6 实验任务与要求
 
