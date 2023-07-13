@@ -33,7 +33,7 @@ ssh <username>@clusters.zju.edu.cn -p 80
 集群上已经安装好了 `HPC SDK` 工具，通过如下的指令加载环境：
 
 ``` bash
-module load /opt/nvidia/hpc_sdk/modulefiles/nvhpc/23.5
+module load nvhpc/23.5
 ```
 
 我们提供了一份 [Makefile](code/Makefile) 供参考，需要与 [baseline.cu](code/baseline.cu) 放在同一目录下，使用 `make` 进行编译，可以在其中修改编译参数。您也可以使用 `nvcc` 编译器进行编译，编译指令示例如下：
@@ -48,12 +48,12 @@ nvcc baseline.cu -o gemm -lcublas -O3 -cudart=shared -Xcompiler -fopenmp -arch=s
 
 * 使用 `srun` 把任务提交至任务队列
 ```bash
-srun -p 2080Ti -N1 -n1 --cpus-per-task=8 --oversubscribe gemm
+srun -p 2080Ti -N 1 -n 1 --cpus-per-task=8 --gpus=1 gemm
 ```
 
 * 使用 `salloc` 请求集群资源，待资源分配完毕后手动运行
 ```bash
-salloc -p 2080Ti -N1 -n1 --cpus-per-task=8 --oversubscribe
+salloc -p 2080Ti -N 1 -n 1 --cpus-per-task=8 --gpus=1
 ssh GPU06
 ./gemm
 # 注意在结束任务之后需要手动退出以避免对服务器资源的占用
