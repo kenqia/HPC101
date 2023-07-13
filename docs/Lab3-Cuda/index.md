@@ -28,6 +28,8 @@ ssh <username>@clusters.zju.edu.cn -p 80
 
 其中 `username` 为 `{你的姓名缩写}` ，例：王小明的用户名为 `wxm`。
 
+> 登录节点为内存 20GB 的家用 pc，请不要使用 vscode-remote-ssh 等对内存消耗大的工具
+
 #### 2.2 编译
 
 集群上已经安装好了 `HPC SDK` 工具，通过如下的指令加载环境：
@@ -65,6 +67,8 @@ exit
 # 如 "salloc: Granted job allocation 114"，则 job_id 为 114
 # 此外，也可以使用 squeue 查看当前正在运行的任务
 ```
+
+> 使用 salloc 的方法时可能会出现无法独占资源的情况 （两人共用一张卡），请尽量减少 salloc 方法的使用，或者添加 `--exclusive` 选项独占节点
 
 单次任务的最大运行时间为 10 分钟。**在实验截止日期前一周，最大运行时间将会减少。**
 
