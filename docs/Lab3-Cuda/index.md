@@ -23,7 +23,7 @@
 登录方式：
 
 ``` bash
-ssh <username>@clusters.zju.edu.cn -p 14514
+ssh <username>@clusters.zju.edu.cn -p 80
 ```
 
 其中 `username` 为 `{你的姓名缩写}` ，例：王小明的用户名为 `wxm`。
