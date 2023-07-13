@@ -14,9 +14,65 @@
   <img src="image/API.png" alt="API" style="zoom:50%;" />
 </div>
 
-## 2 实验环境 ( BUILDING )
+## 2 实验环境
 
-> 由于机房装修及机器移动等需求，本次实验使用的服务器尚未完成配置。我们将在 7 月 12 日左右完成配置，届时会在群内通知。如果您有迫切需求，可以尝试在具有 Nvidia 显卡的本地机器上进行初步的尝试。如果合适的机器，也可以联系我们。
+本实验提供了一个使用 `slurm` 管理的 GPU 节点（GPU06），在分区 2080Ti 中。该节点包含 2 张 Nvidia RTX 2080Ti，可供 2 位同学同时使用，每次使用限制时长为 10 分钟。
+
+#### 2.1 登录
+
+登录方式：
+
+``` bash
+ssh <username>@clusters.zju.edu.cn -p 80
+```
+
+其中 `username` 为 `{你的姓名缩写}` ，例：王小明的用户名为 `wxm`。
+
+#### 2.2 编译
+
+集群上已经安装好了 `HPC SDK` 工具，通过如下的指令加载环境：
+
+``` bash
+module load /opt/nvidia/hpc_sdk/modulefiles/nvhpc/23.5
+```
+
+我们提供了一份 [Makefile](code/Makefile) 供参考，需要与 [baseline.cu](code/baseline.cu) 放在同一目录下，使用 `make` 进行编译，可以在其中修改编译参数。您也可以使用 `nvcc` 编译器进行编译，编译指令示例如下：
+
+``` bash
+nvcc baseline.cu -o gemm -lcublas -O3 -cudart=shared -Xcompiler -fopenmp -arch=sm_75
+```
+
+#### 2.3 运行
+
+以下两种方法都是可以的，但是我们推荐使用 `srun` 提交任务，避免因为手动运行忘记退出而导致的资源浪费。
+
+* 使用 `srun` 把任务提交至任务队列
+```bash
+srun -p 2080Ti -N1 -n1 --cpus-per-task=8 --oversubscribe gemm
+```
+
+* 使用 `salloc` 请求集群资源，待资源分配完毕后手动运行
+```bash
+salloc -p 2080Ti -N1 -n1 --cpus-per-task=8 --oversubscribe
+ssh GPU06
+./gemm
+# 注意在结束任务之后需要手动退出以避免对服务器资源的占用
+exit
+exit
+# 如果没有正确退出，也可以尝试如下指令
+# scancel <job_id>
+# 其中，<job_id> 为 salloc 返回的内容
+# 如 "salloc: Granted job allocation 114"，则 job_id 为 114
+# 此外，也可以使用 squeue 查看当前正在运行的任务
+```
+
+单次任务的最大运行时间为 10 分钟。**在实验截止日期前一周，最大运行时间将会减少。**
+
+#### 2.4 集群状态获取
+
+可以通过 `sinfo` 获取当前集群的状态，通过 `squeue` 获取排队的任务信息。如果当前自己的任务正在运行，则你可以通过 `ssh` 连接到各个计算节点通过 `htop` 等命令观察运行情况。
+
+> 具体 Slurm 的教程会在后续的一份文档中给出。
 
 ## 3 实验基础知识介绍
 
@@ -44,7 +100,7 @@
 
 > 以下内容以 [AI Chips: A100 GPU with Nvidia Ampere architecture](https://jonathan-hui.medium.com/ai-chips-a100-gpu-with-nvidia-ampere-architecture-3034ed685e6e) 为参考，如果有不清楚的地方可以参考原文章、自行搜索或者向我们询问。
 
-类比计算机层次存储结构，我们对 GPU 结构，尤其是存储方面进行一定的了解。进行以 Nvidia Ampere 架构为例，完整的 GA100 核心如下所示：
+类比计算机层次存储结构，我们对 GPU 结构，尤其是存储方面进行一定的了解。进行以 Nvidia Ampere 架构为例，完整的 GA100 核心如下所示（A100 并不是完整的 GA100 核心）：
 
 <div align="center">
 <img src="image/GA100.jpg" alt="GA 100" style="zoom:50%;" />
@@ -234,7 +290,7 @@ $$
 
 - 矩阵大小：$10001 \times 10001$
 - 元素类型：`double`
-- 迭代次数：$n = 5$
+- 迭代次数：$n = 2$
 
 参考的编译参数见 [Makefile](code/Makefile)。您可以编译参数进行修改，但需要在报告中说明修改的内容及原因。
 

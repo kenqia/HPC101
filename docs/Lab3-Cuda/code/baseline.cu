@@ -8,7 +8,7 @@
 
 const int block_size = 16;
 const int size = 10001;     // Matrix Size (size * size)
-const int iter = 5;     // Number of iterations
+const int iter = 2;     // Number of iterations
 
 #define a(_x, _y) a[(_x) * size + (_y)]
 #define b(_x, _y) b[(_x) * size + (_y)]
