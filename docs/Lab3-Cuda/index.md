@@ -46,14 +46,25 @@ nvcc baseline.cu -o gemm -lcublas -O3 -cudart=shared -Xcompiler -fopenmp -arch=s
 
 #### 2.3 运行
 
-以下两种方法都是可以的，但是我们推荐使用 `srun` 提交任务，避免因为手动运行忘记退出而导致的资源浪费。
+> 由于 2080Ti 的计算能力是 7.5，不能使用 Double 类型的 Tensor Core。因此在本次实验中，如果您**写完了 Tensor Core 的代码**，则可以在 A100 的节点上进行测试，且只允许使用 `srun` 或者 `sbatch` 提交任务。
 
-* 使用 `srun` 把任务提交至任务队列
+以下三种方法都是可以的，但是我们推荐使用 `srun` 或者 `sbatch` 提交任务，避免因为手动运行忘记退出而导致的资源浪费。
+
+- 使用 `srun` 把任务提交至任务队列
 ```bash
 srun -p 2080Ti -N 1 -n 1 --cpus-per-task=8 --gpus=1 gemm
 ```
 
-* 使用 `salloc` 请求集群资源，待资源分配完毕后手动运行
+- 使用 `sbatch` 提交任务至任务队列，需要编写 `job.sh` 文件，示例见 [此处](code/job.sh)
+```bash
+# 在运行前，请确保能申请的机器能够访问在 job.sh 中需要访问的文件
+sbatch job.sh
+# 之后输出的内容中是这样的形式
+# job.%j.out
+# 其中 %j 为任务的 id，可以通过 cat job.%j.out 查看任务的输出
+```
+
+- 使用 `salloc` 请求集群资源，待资源分配完毕后手动运行
 ```bash
 salloc -p 2080Ti -N 1 -n 1 --cpus-per-task=8 --gpus=1
 ssh GPU06
@@ -75,8 +86,6 @@ exit
 #### 2.4 集群状态获取
 
 可以通过 `sinfo` 获取当前集群的状态，通过 `squeue` 获取排队的任务信息。如果当前自己的任务正在运行，则你可以通过 `ssh` 连接到各个计算节点通过 `htop` 等命令观察运行情况。
-
-> 具体 Slurm 的教程会在后续的一份文档中给出。
 
 ## 3 实验基础知识介绍
 
@@ -163,9 +172,9 @@ MEM[8]    MEM[9]    MEM[10]   MEM[11]
 
 需要注意的是，若存储器的 bank 进行过针对性的优化，多个线程访问同一 bank 的同一位置可以通过同时向所有线程广播数据进行解决，同样不会产生 bank conflict 问题。
 
-#### 3.3.5 Tensor Core (Bonus)
+#### 3.3.5 Tensor Core
 
-为了高效地进行浮点数运算，我们可以使用浮点运算单元。那为了加速矩阵运算，是不是我们也同样可以设计一些专门用于矩阵运算的单元？Tensor Core 就是为了达成类似目的而设计的组件。在本次实验中，如果你可以使用 Tensor Core 完成本次 Lab，可以获得一定的加分。参考文档如下：
+为了高效地进行浮点数运算，我们可以使用浮点运算单元。那为了加速矩阵运算，是不是我们也同样可以设计一些专门用于矩阵运算的单元？Tensor Core 就是为了达成类似目的而设计的组件。部分参考文档如下：
 
 - [CUDA C++ Programming Guide](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#wmma)
 - [Tips for Optimizing GPU Performance Using Tensor Cores](https://developer.nvidia.com/blog/optimizing-gpu-performance-tensor-cores/)
@@ -285,6 +294,8 @@ $$
 正如前文提及，Tensor Core 能在一个周期内完成一个小矩阵乘法，因而提高计算效率，但是 Tensor Core 对作矩阵乘法的两个矩阵的形状要求比较高（例如 4x4x4，8x8x8 等），你需要合理地对矩阵进行切分和对 Wrap 和 Block 中的线程进行分配来最大化 Tensor Core 的计算性能。了解如何调用 Tensor Core，可以查阅文档尾部的参考文献。
 
 使用 Tensor Core 完成本次实验，你将会获得 Bonus。
+
+> 如果使用 Tensor Core 后性能有下滑，可以提交两份代码，即您认为性能最好的代码和使用 Tensor Core 的代码。前者会在 2080Ti 上运行评判，后者会在 A100 上运行评判。
 
 ## 5 评测方式及其他说明
 
