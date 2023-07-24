@@ -34,7 +34,7 @@ source /opt/intel/oneapi/setvars.sh
 
 使用该命令之后会加载`Intel MPI`的相关环境。
 
-在提供的基准代码中，我们给出了一份`Makefile`，直接使用`make`即可编译。集群上也安装有`OpenMPI`，使用`module`管理，启动方式为
+在提供的基准代码中，我们给出了一份`Makefile`，直接使用`make`即可编译。集群上也安装有`OpenMPI`和`HPC-X`，使用`module`管理，启动方式分别为
 
 ```bash
 module load openmpi/4.1.5
@@ -45,14 +45,43 @@ module load nvhpc-hpcx/23.5
 
 #### 2.3 运行
 
-在加载上述`IntelMPI`套件之后，可以使用下面几种方式运行程序（节点数和进程数请自行选择）：
+运行时可能会出现`Segmentation Fault`的问题，你可以通过
 
-- 使用 `srun` 把任务提交至任务队列。如使用4个节点，8个任务发起`pcg`：
+```bash
+ulimit -s unlimited
+```
+
+来解决。
+
+在这之后，你可以采用`srun`，`sbatch`或`salloc`来运行程序。一般推荐前两种。
+
+- 使用`srun`运行程序。比如，使用4节点、8任务来运行`pcg`：
+
 ```bash
 srun -N 4 -n 8 ./pcg
 ```
 
-如果使用的是`Intel MPI`，可能会在`srun`时产生一些警告，无视即可。
+目前`IntelMPI`不能使用`srun`正常运行，不推荐使用。`OpenMPI`使用`srun`启动时会得到较多的warning，忽略即可。
+如果你想要使用`HPC-X`，你应该执行
+
+```bash
+LD_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/23.5/comm_libs/11.8/openmpi4/openmpi-4.1.5/lib/:$LD_LIBRARY_PATH srun -N 4 -n 8 ./pcg
+```
+
+- 使用`sbatch`提交脚本进行执行。一个脚本示例如下：
+
+```bash
+#!/bin/bash
+#SBATCH -o out.txt
+#SBATCH -N 4
+#SBATCH -n 8
+#module load openmpi/4.1.5
+#module load nvhpc-hpcx/23.5
+source /opt/intel/oneapi/setvars.sh
+mpirun ./pcg
+```
+
+会产生较多的warning，忽略即可。同理，`HPC-X`需要修改一下`LD_LIBRARY_PATH`。
 
 - 使用`salloc`分配节点，使用`ssh`登录节点后用`mpirun`运行程序。
 
