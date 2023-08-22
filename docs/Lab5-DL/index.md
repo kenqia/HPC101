@@ -392,6 +392,7 @@ PyTorch 自身也有一些分布式训练的工具。
 你需要按照下列表格中给定的模型结构参数实现模型。尝试使用
 
 - 分布式训练策略（DP/ZeRO，PP，TP）
+- 混合精度训练
 - Gradient Accumulation
 - Gradient Checkpointing
 - CPU/NVMe Offload
