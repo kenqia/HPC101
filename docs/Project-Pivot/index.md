@@ -53,7 +53,7 @@ $$L_{\inf}((a_1, a_2, \cdots , a_k), (b_1, b_2, \cdots , b_k)) = max(|a_i − b_
 
 2.	程序使用方法：
 
-    a.	源码包位置：/shared/Project/pivot.tar
+    a.	源码包位置：[/shared/Project/pivot.tar](https://git.zju.edu.cn/zjusct/summer-course-2023/HPC101-Labs-2023/-/tree/main/docs/Project-Pivot/pivot.tar)
 
     b.	参考编译命令：gcc pivot.c -lm -o pivot
 
