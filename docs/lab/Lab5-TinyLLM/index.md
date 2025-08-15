@@ -143,7 +143,7 @@ $$
 
 Qwen 3 引入了 Q/K Normalization，即在计算注意力分数之前，对 Query 和 Key 进行归一化处理。这有助于提高模型的稳定性和收敛速度。
 
-在具体实现中，我们使用 RMSNorm 进行归一化处理。
+注意这里的 Q/K Normalization 和 LayerNorm 有所不同，它是在 head 维度上进行归一化，而不是在序列维度上。具体实现中，我们会对 Q 和 K 应用 RMSNorm 进行归一化处理。
 
 #### Qwen 3 Self Attention Layer
 
@@ -152,8 +152,8 @@ Qwen 3 引入了 Q/K Normalization，即在计算注意力分数之前，对 Que
 ![Qwen 3 Self Attention Layer 架构示意图](image/attention.png){ width="400" style="display:block; margin:auto;" }
 
 1. 首先输入 `hidden_states` 分别通过 `q_proj`, `k_proj`, `v_proj` 进行线性投影，得到 Q, K, V。
-2. 对 Q 和 K 应用 RMSNorm 进行归一化处理。
-3. 对 Q, K, V 进行形状变换，重塑为多头格式。
+2. 对 Q, K, V 进行形状变换，重塑为多头格式。
+3. 对 Q 和 K 应用 RMSNorm 进行归一化处理。
 4. 对 Q 和 K 应用 RoPE 位置编码。
 5. 根据 GQA 机制对 K 和 V 进行复制，以匹配 Q 的头数。
 6. 进行注意力计算：
