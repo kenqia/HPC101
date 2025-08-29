@@ -185,7 +185,9 @@ int main(int argc, char** argv) {
         
         results[l].passed = true;
         for (long i = 0; i < N * K * sizeO; i++) {
-            if (std::abs((h_custom_outputs[l][i] - h_baseline_outputs[l][i]) / (h_baseline_outputs[l][i] + 1e-8f)) > 1e-4f) {
+            if (std::isnan(h_custom_outputs[l][i]) || // check for NaN
+                std::abs((h_custom_outputs[l][i] - h_baseline_outputs[l][i]) / (h_baseline_outputs[l][i] + 1e-8f)) > 1e-4f)
+            {
                 results[l].passed = false;
                 all_correct = false;
                 break;
