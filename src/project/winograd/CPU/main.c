@@ -183,7 +183,9 @@ static int validate_and_benchmark(config_t *cfg) {
         
         results[l].passed = 1;
         for (long i = 0; i < N * K * sizeO; i++) {
-            if (fabs((custom_outputs[l][i] - baseline_outputs[l][i]) / (baseline_outputs[l][i] + 1e-8)) > 1e-4) {
+            if (isnan(custom_outputs[l][i]) ||
+                fabs((custom_outputs[l][i] - baseline_outputs[l][i]) / (baseline_outputs[l][i] + 1e-8)) > 1e-4) 
+            {
                 results[l].passed = 0;
                 all_correct = 0;
                 break;
